@@ -567,14 +567,45 @@ export default function GrinchGame2D() {
       ctx.fillStyle = '#001122';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Draw snow
+      // Draw snow (falling straight down as snowflakes)
       ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 1;
       for (let i = 0; i < 50; i++) {
-        const x = (i * 17 + gameTimeRef.current * 20) % canvas.width;
+        const x = (i * 17) % canvas.width; // Fixed horizontal position - no horizontal movement
         const y = (i * 23 + gameTimeRef.current * 50) % canvas.height;
+        
+        // Draw snowflake shape
         ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        // Center dot
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Six arms of the snowflake
+        const armLength = 3;
+        for (let arm = 0; arm < 6; arm++) {
+          const angle = (arm * Math.PI) / 3;
+          const endX = x + Math.cos(angle) * armLength;
+          const endY = y + Math.sin(angle) * armLength;
+          
+          // Main arm
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          
+          // Small branches on each arm
+          const branchLength = armLength * 0.4;
+          const branchX1 = x + Math.cos(angle) * branchLength;
+          const branchY1 = y + Math.sin(angle) * branchLength;
+          
+          ctx.beginPath();
+          ctx.moveTo(branchX1, branchY1);
+          ctx.lineTo(branchX1 + Math.cos(angle + Math.PI/4) * 1, branchY1 + Math.sin(angle + Math.PI/4) * 1);
+          ctx.moveTo(branchX1, branchY1);
+          ctx.lineTo(branchX1 + Math.cos(angle - Math.PI/4) * 1, branchY1 + Math.sin(angle - Math.PI/4) * 1);
+          ctx.stroke();
+        }
       }
       
       // Draw ground
