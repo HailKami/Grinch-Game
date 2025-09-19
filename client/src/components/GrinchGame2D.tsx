@@ -109,10 +109,9 @@ export default function GrinchGame2D() {
     const centerY = grinchObj.y + grinchObj.height / 2;
     const time = gameTimeRef.current;
     
-    // Animation variables - Santa style!
+    // Animation variables - Santa style but grumpier!
     const bounce = Math.sin(time * 2.5) * 3; // Jolly bouncing
     const bellyJiggle = Math.sin(time * 5) * 2; // Belly jiggling like Santa
-    const armWave = Math.sin(time * 3) * 0.3; // Arm waving
     const eyeBlink = Math.sin(time * 0.4) > 0.9 ? 0.3 : 1; // Occasional blinking
     const hatBounce = Math.sin(time * 3.5) * 2; // Bouncy hat pompom
     const cheekGlow = Math.sin(time * 2) * 0.3 + 0.7; // Rosy cheeks
@@ -235,44 +234,42 @@ export default function GrinchGame2D() {
     ctx.arc(centerX + 8, eyeY - 1, 1.5, 0, Math.PI * 2);
     ctx.fill();
     
-    // Cheerful eyebrows instead of angry ones
+    // Grumpy eyebrows - angled down
     ctx.strokeStyle = '#006400';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(centerX - 11, grinchObj.y - 16 + bounce);
-    ctx.quadraticCurveTo(centerX - 7, grinchObj.y - 18 + bounce, centerX - 3, grinchObj.y - 16 + bounce);
-    ctx.moveTo(centerX + 3, grinchObj.y - 16 + bounce);
-    ctx.quadraticCurveTo(centerX + 7, grinchObj.y - 18 + bounce, centerX + 11, grinchObj.y - 16 + bounce);
+    ctx.moveTo(centerX - 12, grinchObj.y - 18 + bounce);
+    ctx.lineTo(centerX - 4, grinchObj.y - 15 + bounce);
+    ctx.moveTo(centerX + 4, grinchObj.y - 15 + bounce);
+    ctx.lineTo(centerX + 12, grinchObj.y - 18 + bounce);
     ctx.stroke();
     
-    // Big jolly smile like Santa's instead of frown
+    // Grumpy frown instead of big smile
     ctx.strokeStyle = '#006400';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.arc(centerX, grinchObj.y + 2 + bounce, 8, 0.2, Math.PI - 0.2);
+    ctx.arc(centerX, grinchObj.y + 4 + bounce, 6, 0.8, Math.PI - 0.8);
     ctx.stroke();
     
-    // Smile lines at corners
+    // Small frown lines at corners
     ctx.beginPath();
-    ctx.moveTo(centerX - 8, grinchObj.y + 2 + bounce);
-    ctx.lineTo(centerX - 10, grinchObj.y + 5 + bounce);
-    ctx.moveTo(centerX + 8, grinchObj.y + 2 + bounce);
-    ctx.lineTo(centerX + 10, grinchObj.y + 5 + bounce);
+    ctx.moveTo(centerX - 6, grinchObj.y + 4 + bounce);
+    ctx.lineTo(centerX - 8, grinchObj.y + 2 + bounce);
+    ctx.moveTo(centerX + 6, grinchObj.y + 4 + bounce);
+    ctx.lineTo(centerX + 8, grinchObj.y + 2 + bounce);
     ctx.stroke();
     
-    // Santa-style arms - rounder and more animated
+    // Static arms - no annoying animations
     ctx.fillStyle = '#228B22';
     
-    // Left arm with waving motion
-    const leftArmBounce = Math.sin(time * 2.2 + Math.PI/4) * 0.4;
+    // Left arm - simple and still
     ctx.beginPath();
-    ctx.ellipse(grinchObj.x + 5, centerY - 5 + bounce, 8, 18, -0.2 + armWave + leftArmBounce, 0, Math.PI * 2);
+    ctx.ellipse(grinchObj.x + 5, centerY - 5 + bounce, 8, 18, -0.2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Right arm with waving motion
-    const rightArmBounce = Math.sin(time * 2.4 + Math.PI/2) * 0.4;
+    // Right arm - simple and still
     ctx.beginPath();
-    ctx.ellipse(grinchObj.x + grinchObj.width - 5, centerY - 5 + bounce, 8, 18, 0.2 - armWave + rightArmBounce, 0, Math.PI * 2);
+    ctx.ellipse(grinchObj.x + grinchObj.width - 5, centerY - 5 + bounce, 8, 18, 0.2, 0, Math.PI * 2);
     ctx.fill();
     
     // Bigger, friendlier hands
