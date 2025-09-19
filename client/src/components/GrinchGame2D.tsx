@@ -110,190 +110,151 @@ export default function GrinchGame2D() {
     const time = gameTimeRef.current;
     
     // Animation variables
-    const bounce = Math.sin(time * 3) * 2; // Subtle bouncing
-    const eyeShift = Math.sin(time * 0.5) * 1; // Shifty eyes
-    const smirkTwitch = Math.sin(time * 2) > 0.8 ? 1.5 : 0; // Occasional smirk twitch
+    const sway = Math.sin(time * 2) * 1; // Subtle swaying
+    const eyeShift = Math.sin(time * 0.3) * 0.5; // Minimal eye movement
     
-    // Grinch body - more cartoon pear shape
-    ctx.fillStyle = '#00A000'; // Brighter Grinch green
+    // Classic Dr. Seuss Grinch body - very thin and lanky
+    ctx.fillStyle = '#228B22'; // Classic Grinch green
     ctx.beginPath();
-    ctx.ellipse(centerX, centerY + 8 + bounce, 25, 28, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX + sway, centerY + 5, 12, 32, 0, 0, Math.PI * 2); // Thin, tall body
     ctx.fill();
     
-    // Body fur texture (more organized)
-    ctx.fillStyle = '#40FF40'; // Lighter green highlights
-    for (let i = 0; i < 12; i++) {
-      const angle = (i / 12) * Math.PI * 2;
-      const radius = 20 + Math.sin(angle * 3) * 3; // Varying radius for natural look
-      const fuzzX = centerX + Math.cos(angle) * radius;
-      const fuzzY = centerY + 8 + bounce + Math.sin(angle) * 22;
-      ctx.beginPath();
-      ctx.arc(fuzzX, fuzzY, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    // Grinch head - more cartoon proportions
-    ctx.fillStyle = '#00A000';
-    ctx.beginPath();
-    ctx.ellipse(centerX, grinchObj.y - 10 + bounce, 24, 28, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Head fur details (wilder, more cartoon-like)
-    ctx.fillStyle = '#40FF40';
-    for (let i = 0; i < 10; i++) {
-      const angle = (i / 10) * Math.PI * 2;
-      const radius = 18 + Math.sin(angle * 2) * 4;
-      const fuzzX = centerX + Math.cos(angle) * radius;
-      const fuzzY = grinchObj.y - 10 + bounce + Math.sin(angle) * 24;
-      ctx.beginPath();
-      ctx.arc(fuzzX, fuzzY, 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    // Grinch snout/muzzle - more pronounced
-    ctx.fillStyle = '#60FF60';
-    ctx.beginPath();
-    ctx.ellipse(centerX, grinchObj.y - 5 + bounce, 14, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Nose
-    ctx.fillStyle = '#008000';
-    ctx.beginPath();
-    ctx.ellipse(centerX, grinchObj.y - 10 + bounce, 3, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Nostrils
-    ctx.fillStyle = '#004000';
-    ctx.beginPath();
-    ctx.ellipse(centerX - 1, grinchObj.y - 9 + bounce, 0.8, 1.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(centerX + 1, grinchObj.y - 9 + bounce, 0.8, 1.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Santa hat (more cartoon-like)
-    ctx.fillStyle = '#FF0040';
-    ctx.beginPath();
-    ctx.moveTo(centerX - 18, grinchObj.y - 30 + bounce);
-    ctx.quadraticCurveTo(centerX - 8, grinchObj.y - 48 + bounce, centerX + 12, grinchObj.y - 45 + bounce);
-    ctx.quadraticCurveTo(centerX + 22, grinchObj.y - 40 + bounce, centerX + 18, grinchObj.y - 32 + bounce);
-    ctx.lineTo(centerX + 18, grinchObj.y - 30 + bounce);
-    ctx.lineTo(centerX - 18, grinchObj.y - 30 + bounce);
-    ctx.fill();
-    
-    // Hat brim
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.ellipse(centerX, grinchObj.y - 30 + bounce, 20, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Hat pompom (bouncy)
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    const pompomBounce = Math.sin(time * 4) * 2;
-    ctx.arc(centerX + 15, grinchObj.y - 42 + bounce + pompomBounce, 5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Pompom texture
+    // Sparse fur texture - Dr. Seuss style
+    ctx.fillStyle = '#32CD32';
     for (let i = 0; i < 8; i++) {
       const angle = (i / 8) * Math.PI * 2;
-      const fluffX = centerX + 15 + Math.cos(angle) * 4;
-      const fluffY = grinchObj.y - 42 + bounce + pompomBounce + Math.sin(angle) * 4;
+      const fuzzX = centerX + sway + Math.cos(angle) * (8 + Math.sin(angle * 2) * 2);
+      const fuzzY = centerY + 5 + Math.sin(angle) * 28;
       ctx.beginPath();
-      ctx.arc(fluffX, fluffY, 1.5, 0, Math.PI * 2);
+      ctx.arc(fuzzX, fuzzY, 1.5, 0, Math.PI * 2);
       ctx.fill();
     }
     
-    // Eyes - large and cartoon-like
-    const eyeY = grinchObj.y - 15 + bounce;
-    
-    // Eye whites
-    ctx.fillStyle = 'white';
+    // Dr. Seuss Grinch head - elongated and pointed
+    ctx.fillStyle = '#228B22';
     ctx.beginPath();
-    ctx.ellipse(centerX - 9 + eyeShift, eyeY, 7, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(centerX + 9 - eyeShift, eyeY, 7, 9, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX + sway, grinchObj.y - 8, 16, 22, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Pupils - shifty and mischievous
+    // Head fur - sparse and wispy like Dr. Seuss
+    ctx.fillStyle = '#32CD32';
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const fuzzX = centerX + sway + Math.cos(angle) * 14;
+      const fuzzY = grinchObj.y - 8 + Math.sin(angle) * 18;
+      ctx.beginPath();
+      ctx.arc(fuzzX, fuzzY, 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Classic Dr. Seuss Grinch snout
+    ctx.fillStyle = '#228B22';
+    ctx.beginPath();
+    ctx.ellipse(centerX + sway, grinchObj.y - 2, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Small black nose
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.arc(centerX - 9 + eyeShift * 2, eyeY + 1, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(centerX + 9 - eyeShift * 2, eyeY + 1, 4, 0, Math.PI * 2);
+    ctx.arc(centerX + sway, grinchObj.y - 5, 2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Eye highlights
+    // Santa hat - classic Dr. Seuss style
+    ctx.fillStyle = '#DC143C';
+    ctx.beginPath();
+    ctx.moveTo(centerX - 12 + sway, grinchObj.y - 25);
+    ctx.quadraticCurveTo(centerX + sway, grinchObj.y - 40, centerX + 15 + sway, grinchObj.y - 35);
+    ctx.quadraticCurveTo(centerX + 18 + sway, grinchObj.y - 30, centerX + 12 + sway, grinchObj.y - 25);
+    ctx.lineTo(centerX - 12 + sway, grinchObj.y - 25);
+    ctx.fill();
+    
+    // Hat trim
     ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.arc(centerX - 8 + eyeShift * 2, eyeY - 1, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(centerX + 10 - eyeShift * 2, eyeY - 1, 1.5, 0, Math.PI * 2);
+    ctx.ellipse(centerX + sway, grinchObj.y - 25, 14, 3, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Eyebrows - very expressive and angled
-    ctx.strokeStyle = '#006000';
-    ctx.lineWidth = 3;
+    // Hat pompom
+    ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.moveTo(centerX - 15, grinchObj.y - 24 + bounce);
-    ctx.lineTo(centerX - 5, grinchObj.y - 20 + bounce);
-    ctx.moveTo(centerX + 5, grinchObj.y - 20 + bounce);
-    ctx.lineTo(centerX + 15, grinchObj.y - 24 + bounce);
+    ctx.arc(centerX + 12 + sway, grinchObj.y - 32, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Classic Dr. Seuss Grinch eyes - small and beady
+    const eyeY = grinchObj.y - 12;
+    
+    // Small yellow eyes
+    ctx.fillStyle = '#FFFF00';
+    ctx.beginPath();
+    ctx.arc(centerX - 6 + sway + eyeShift, eyeY, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX + 6 + sway - eyeShift, eyeY, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Small black pupils
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(centerX - 6 + sway + eyeShift, eyeY, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX + 6 + sway - eyeShift, eyeY, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Classic angry Dr. Seuss eyebrows
+    ctx.strokeStyle = '#006400';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 10 + sway, grinchObj.y - 18);
+    ctx.lineTo(centerX - 3 + sway, grinchObj.y - 15);
+    ctx.moveTo(centerX + 3 + sway, grinchObj.y - 15);
+    ctx.lineTo(centerX + 10 + sway, grinchObj.y - 18);
     ctx.stroke();
     
-    // Classic Grinch grin - wide and mischievous
-    ctx.strokeStyle = '#004000';
-    ctx.lineWidth = 2.5;
+    // Classic Grinch frown/grimace
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(centerX + smirkTwitch, grinchObj.y - 2 + bounce, 10, 0.1, Math.PI - 0.1);
+    ctx.arc(centerX + sway, grinchObj.y + 2, 6, 0.3, Math.PI - 0.3);
     ctx.stroke();
     
-    // Grin lines at corners
-    ctx.beginPath();
-    ctx.moveTo(centerX - 10 + smirkTwitch, grinchObj.y - 2 + bounce);
-    ctx.lineTo(centerX - 12 + smirkTwitch, grinchObj.y + 1 + bounce);
-    ctx.moveTo(centerX + 10 + smirkTwitch, grinchObj.y - 2 + bounce);
-    ctx.lineTo(centerX + 12 + smirkTwitch, grinchObj.y + 1 + bounce);
-    ctx.stroke();
+    // Dr. Seuss style thin, lanky arms
+    ctx.fillStyle = '#228B22';
     
-    // Arms - more cartoon-like
-    ctx.fillStyle = '#00A000';
-    
-    // Left arm with slight animation
-    const leftArmSway = Math.sin(time * 1.5) * 0.2;
+    // Left arm - very thin
     ctx.beginPath();
-    ctx.ellipse(grinchObj.x + 6, centerY - 5 + bounce, 7, 18, -0.2 + leftArmSway, 0, Math.PI * 2);
+    ctx.ellipse(grinchObj.x + 2, centerY - 8, 4, 20, -0.3, 0, Math.PI * 2);
     ctx.fill();
     
-    // Right arm with animation
-    const rightArmSway = Math.sin(time * 1.7) * 0.2;
+    // Right arm - very thin
     ctx.beginPath();
-    ctx.ellipse(grinchObj.x + grinchObj.width - 6, centerY - 5 + bounce, 7, 18, 0.2 + rightArmSway, 0, Math.PI * 2);
+    ctx.ellipse(grinchObj.x + grinchObj.width - 2, centerY - 8, 4, 20, 0.3, 0, Math.PI * 2);
     ctx.fill();
     
-    // Hands - bigger and more cartoon-like
-    ctx.fillStyle = '#40FF40';
+    // Thin hands
+    ctx.fillStyle = '#228B22';
     ctx.beginPath();
-    ctx.arc(grinchObj.x + 6, centerY + 10 + bounce, 5, 0, Math.PI * 2);
+    ctx.arc(grinchObj.x + 2, centerY + 8, 3, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(grinchObj.x + grinchObj.width - 6, centerY + 10 + bounce, 5, 0, Math.PI * 2);
+    ctx.arc(grinchObj.x + grinchObj.width - 2, centerY + 8, 3, 0, Math.PI * 2);
     ctx.fill();
     
-    // Fingers (simple but cartoon-like)
-    ctx.fillStyle = '#40FF40';
+    // Simple Dr. Seuss style fingers - just lines
+    ctx.strokeStyle = '#228B22';
+    ctx.lineWidth = 2;
     for (let hand = 0; hand < 2; hand++) {
-      const handX = hand === 0 ? grinchObj.x + 6 : grinchObj.x + grinchObj.width - 6;
+      const handX = hand === 0 ? grinchObj.x + 2 : grinchObj.x + grinchObj.width - 2;
       for (let finger = 0; finger < 3; finger++) {
-        const fingerAngle = (finger - 1) * 0.4;
-        const fingerX = handX + Math.cos(fingerAngle) * 6;
-        const fingerY = centerY + 10 + bounce + Math.sin(fingerAngle) * 6;
+        const fingerAngle = (finger - 1) * 0.3;
+        const startX = handX;
+        const startY = centerY + 8;
+        const endX = handX + Math.cos(fingerAngle) * 6;
+        const endY = centerY + 8 + Math.sin(fingerAngle) * 6;
         ctx.beginPath();
-        ctx.ellipse(fingerX, fingerY, 1.5, 3, fingerAngle, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
       }
     }
     
