@@ -951,9 +951,9 @@ export default function GrinchGame2D() {
         const baseSpawnRate = Math.max(0.8, 2.5 - difficultyRef.current * 0.3);
         const giftOffsetRange = Math.min(60 + difficultyRef.current * 10, 100); // Widen with difficulty but cap
         
-        // Randomize gift types with difficulty scaling
+        // Randomize gift types with difficulty scaling - reduced snowball spawn rate
         const bombChance = Math.min(0.12 + difficultyRef.current * 0.03, 0.25);
-        const snowballChance = Math.min(0.1 + difficultyRef.current * 0.02, 0.2);
+        const snowballChance = Math.min(0.05 + difficultyRef.current * 0.01, 0.1); // Much less frequent
         const random = Math.random();
         
         let giftType: 'normal' | 'bomb' | 'snowball';
@@ -974,6 +974,11 @@ export default function GrinchGame2D() {
           speed: 150 + difficultyRef.current * 50,
           type: giftType
         });
+        
+        // Debug logging for gift creation
+        if (giftType === 'snowball') {
+          console.log("❄️ SNOWBALL SPAWNED: Homing missile incoming!");
+        }
         
         // Schedule next gift with random timing
         nextGiftAtRef.current = gameTimeRef.current + baseSpawnRate * (0.6 + Math.random() * 0.8);
@@ -1027,11 +1032,11 @@ export default function GrinchGame2D() {
             endGame();
             return; // Stop the game loop immediately
           } else if (gift.type === 'snowball') {
-            // Snowball - freeze the Grinch for 2 seconds
+            // Snowball - freeze the Grinch for 1 second (reduced from 2)
             grinchFreezeRef.current.isFrozen = true;
-            grinchFreezeRef.current.freezeEndTime = Date.now() + 2000; // 2 seconds from now
+            grinchFreezeRef.current.freezeEndTime = Date.now() + 1000; // 1 second from now
             playHit(); // Use hit sound for snowball impact
-            console.log("Grinch frozen by snowball for 2 seconds!");
+            console.log("🧊 SNOWBALL HIT: Grinch frozen for 1 second!");
           }
         } else {
           newGifts.push(gift);
