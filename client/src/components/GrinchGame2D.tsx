@@ -12,7 +12,7 @@ interface GameObject {
 interface Gift extends GameObject {
   id: string;
   speed: number;
-  type: 'normal' | 'bomb'; // normal gifts give points, bomb gifts end the game
+  type: 'normal' | 'bomb' | 'snowball'; // normal gifts give points, bomb gifts end the game, snowballs freeze the Grinch
 }
 
 export default function GrinchGame2D() {
@@ -46,6 +46,12 @@ export default function GrinchGame2D() {
   const grinchAnimRef = useRef({
     prevX: 375,
     legPhase: 0
+  });
+  
+  // Grinch freeze state controller
+  const grinchFreezeRef = useRef({
+    isFrozen: false,
+    freezeEndTime: 0
   });
   
   const {
@@ -89,6 +95,12 @@ export default function GrinchGame2D() {
     grinchAnimRef.current = {
       prevX: 375,
       legPhase: 0
+    };
+    
+    // Reset Grinch freeze state
+    grinchFreezeRef.current = {
+      isFrozen: false,
+      freezeEndTime: 0
     };
   }, []);
 
@@ -345,6 +357,36 @@ export default function GrinchGame2D() {
     // Right boot cuff
     ctx.fillStyle = 'white';
     ctx.fillRect(centerX + 5, legY + 4 + rightLegOffset, 6, 3);
+    
+    // Ice effect when frozen
+    if (grinchFreezeRef.current.isFrozen) {
+      ctx.fillStyle = 'rgba(173, 216, 230, 0.7)'; // Light blue ice
+      ctx.strokeStyle = 'rgba(0, 191, 255, 0.9)'; // Bright blue edge
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(centerX, centerY + bounce, 35, 45, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Ice crystals effect
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const iceX = centerX + Math.cos(angle) * 28;
+        const iceY = centerY + bounce + Math.sin(angle) * 35;
+        ctx.beginPath();
+        ctx.arc(iceX, iceY, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // "FROZEN!" text
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'blue';
+      ctx.font = 'bold 16px Arial';
+      ctx.lineWidth = 2;
+      ctx.strokeText('FROZEN!', centerX - 35, grinchObj.y - 50);
+      ctx.fillText('FROZEN!', centerX - 35, grinchObj.y - 50);
+    }
     
     ctx.restore();
   }, []);
@@ -670,7 +712,7 @@ export default function GrinchGame2D() {
       ctx.beginPath();
       ctx.arc(gift.x + gift.width/2, gift.y - 5, 6, 0, Math.PI * 2);
       ctx.fill();
-    } else {
+    } else if (gift.type === 'bomb') {
       // Bomb gift - dark and dangerous looking
       ctx.fillStyle = '#2C2C2C'; // Dark gray box
       ctx.fillRect(gift.x, gift.y, gift.width, gift.height);
@@ -690,6 +732,34 @@ export default function GrinchGame2D() {
       const blinkIntensity = Math.sin(gameTimeRef.current * 8) > 0 ? 0.3 : 0;
       ctx.fillStyle = `rgba(255, 0, 0, ${blinkIntensity})`;
       ctx.fillRect(gift.x - 2, gift.y - 2, gift.width + 4, gift.height + 4);
+    } else if (gift.type === 'snowball') {
+      // Snowball - white circle with sparkles and cold blue aura
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = '#87CEEB'; // Sky blue border
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(gift.x + gift.width/2, gift.y + gift.height/2, gift.width/2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Blue cold aura effect
+      const auraIntensity = Math.sin(gameTimeRef.current * 4) * 0.3 + 0.4;
+      ctx.fillStyle = `rgba(135, 206, 235, ${auraIntensity})`;
+      ctx.beginPath();
+      ctx.arc(gift.x + gift.width/2, gift.y + gift.height/2, gift.width/2 + 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Redraw the snowball on top of the aura
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(gift.x + gift.width/2, gift.y + gift.height/2, gift.width/2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Snowflake emoji
+      ctx.fillStyle = '#00BFFF';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('❄️', gift.x + gift.width/2, gift.y + gift.height/2 + 3);
     }
     
     ctx.restore();
@@ -780,20 +850,29 @@ export default function GrinchGame2D() {
       ctx.fillStyle = '#2d5016';
       ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
 
-      // Update Grinch position
+      // Check if Grinch freeze has expired
+      if (grinchFreezeRef.current.isFrozen && Date.now() >= grinchFreezeRef.current.freezeEndTime) {
+        grinchFreezeRef.current.isFrozen = false;
+        console.log("Grinch unfrozen!");
+      }
+
+      // Update Grinch position (only if not frozen)
       let newGrinchX = grinchRef.current.x;
-      const speed = 300; // pixels per second
       
-      if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
-        newGrinchX -= speed * deltaTime;
+      if (!grinchFreezeRef.current.isFrozen) {
+        const speed = 300; // pixels per second
+        
+        if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
+          newGrinchX -= speed * deltaTime;
+        }
+        if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
+          newGrinchX += speed * deltaTime;
+        }
+        
+        // Keep Grinch on screen
+        newGrinchX = Math.max(0, Math.min(canvas.width - grinchRef.current.width, newGrinchX));
+        grinchRef.current.x = newGrinchX;
       }
-      if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
-        newGrinchX += speed * deltaTime;
-      }
-      
-      // Keep Grinch on screen
-      newGrinchX = Math.max(0, Math.min(canvas.width - grinchRef.current.width, newGrinchX));
-      grinchRef.current.x = newGrinchX;
       
       // Update Grinch walking animation
       const grinchAnim = grinchAnimRef.current;
@@ -872,9 +951,19 @@ export default function GrinchGame2D() {
         const baseSpawnRate = Math.max(0.8, 2.5 - difficultyRef.current * 0.3);
         const giftOffsetRange = Math.min(60 + difficultyRef.current * 10, 100); // Widen with difficulty but cap
         
-        // 25% chance for bomb gifts, increasing with difficulty
-        const bombChance = Math.min(0.15 + difficultyRef.current * 0.05, 0.4);
-        const giftType = Math.random() < bombChance ? 'bomb' : 'normal';
+        // Randomize gift types with difficulty scaling
+        const bombChance = Math.min(0.12 + difficultyRef.current * 0.03, 0.25);
+        const snowballChance = Math.min(0.1 + difficultyRef.current * 0.02, 0.2);
+        const random = Math.random();
+        
+        let giftType: 'normal' | 'bomb' | 'snowball';
+        if (random < bombChance) {
+          giftType = 'bomb';
+        } else if (random < bombChance + snowballChance) {
+          giftType = 'snowball';
+        } else {
+          giftType = 'normal';
+        }
         
         giftsRef.current.push({
           id: Math.random().toString(36).substr(2, 9),
@@ -905,11 +994,17 @@ export default function GrinchGame2D() {
             // Normal gift - increase score
             scoreRef.current += 1;
             playSuccess();
-          } else {
+          } else if (gift.type === 'bomb') {
             // Bomb gift - end the game!
             playHit();
             endGame();
             return; // Stop the game loop immediately
+          } else if (gift.type === 'snowball') {
+            // Snowball - freeze the Grinch for 2 seconds
+            grinchFreezeRef.current.isFrozen = true;
+            grinchFreezeRef.current.freezeEndTime = Date.now() + 2000; // 2 seconds from now
+            playHit(); // Use hit sound for snowball impact
+            console.log("Grinch frozen by snowball for 2 seconds!");
           }
         } else {
           newGifts.push(gift);
