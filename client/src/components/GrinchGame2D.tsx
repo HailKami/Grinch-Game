@@ -917,9 +917,11 @@ export default function GrinchGame2D() {
       }
       giftsRef.current = newGifts;
 
-      // Check for game over (gifts hit ground)
-      const hitGround = giftsRef.current.some(gift => gift.y > canvas.height - 60);
-      if (hitGround) {
+      // Check for game over (only normal gifts hitting ground ends game)
+      const normalGiftHitGround = giftsRef.current.some(gift => 
+        gift.type === 'normal' && gift.y > canvas.height - 60
+      );
+      if (normalGiftHitGround) {
         endGame();
         playHit();
         return;
