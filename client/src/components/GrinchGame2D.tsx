@@ -107,132 +107,195 @@ export default function GrinchGame2D() {
     
     const centerX = grinchObj.x + grinchObj.width / 2;
     const centerY = grinchObj.y + grinchObj.height / 2;
+    const time = gameTimeRef.current;
     
-    // Grinch body (pear-shaped, green and furry)
-    ctx.fillStyle = '#228B22';
+    // Animation variables
+    const bounce = Math.sin(time * 3) * 2; // Subtle bouncing
+    const eyeShift = Math.sin(time * 0.5) * 1; // Shifty eyes
+    const smirkTwitch = Math.sin(time * 2) > 0.8 ? 1.5 : 0; // Occasional smirk twitch
+    
+    // Grinch body - more cartoon pear shape
+    ctx.fillStyle = '#00A000'; // Brighter Grinch green
     ctx.beginPath();
-    ctx.ellipse(centerX, centerY + 10, 22, 30, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX, centerY + 8 + bounce, 25, 28, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Add some fur texture
-    ctx.fillStyle = '#32CD32';
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
-      const fuzzX = centerX + Math.cos(angle) * 18;
-      const fuzzY = centerY + 5 + Math.sin(angle) * 25;
+    // Body fur texture (more organized)
+    ctx.fillStyle = '#40FF40'; // Lighter green highlights
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2;
+      const radius = 20 + Math.sin(angle * 3) * 3; // Varying radius for natural look
+      const fuzzX = centerX + Math.cos(angle) * radius;
+      const fuzzY = centerY + 8 + bounce + Math.sin(angle) * 22;
       ctx.beginPath();
-      ctx.arc(fuzzX, fuzzY, 3, 0, Math.PI * 2);
+      ctx.arc(fuzzX, fuzzY, 2.5, 0, Math.PI * 2);
       ctx.fill();
     }
     
-    // Grinch head (larger, more oval)
-    ctx.fillStyle = '#228B22';
+    // Grinch head - more cartoon proportions
+    ctx.fillStyle = '#00A000';
     ctx.beginPath();
-    ctx.ellipse(centerX, grinchObj.y - 15, 20, 25, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX, grinchObj.y - 10 + bounce, 24, 28, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Head fur details
-    ctx.fillStyle = '#32CD32';
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const fuzzX = centerX + Math.cos(angle) * 16;
-      const fuzzY = grinchObj.y - 15 + Math.sin(angle) * 20;
+    // Head fur details (wilder, more cartoon-like)
+    ctx.fillStyle = '#40FF40';
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2;
+      const radius = 18 + Math.sin(angle * 2) * 4;
+      const fuzzX = centerX + Math.cos(angle) * radius;
+      const fuzzY = grinchObj.y - 10 + bounce + Math.sin(angle) * 24;
       ctx.beginPath();
       ctx.arc(fuzzX, fuzzY, 2, 0, Math.PI * 2);
       ctx.fill();
     }
     
-    // Grinch snout/muzzle
-    ctx.fillStyle = '#90EE90';
+    // Grinch snout/muzzle - more pronounced
+    ctx.fillStyle = '#60FF60';
     ctx.beginPath();
-    ctx.ellipse(centerX, grinchObj.y - 8, 12, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX, grinchObj.y - 5 + bounce, 14, 10, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Santa hat (more detailed)
-    ctx.fillStyle = '#DC143C';
+    // Nose
+    ctx.fillStyle = '#008000';
     ctx.beginPath();
-    ctx.moveTo(centerX - 15, grinchObj.y - 35);
-    ctx.quadraticCurveTo(centerX - 5, grinchObj.y - 50, centerX + 10, grinchObj.y - 45);
-    ctx.quadraticCurveTo(centerX + 20, grinchObj.y - 40, centerX + 15, grinchObj.y - 30);
-    ctx.lineTo(centerX + 15, grinchObj.y - 35);
-    ctx.lineTo(centerX - 15, grinchObj.y - 35);
+    ctx.ellipse(centerX, grinchObj.y - 10 + bounce, 3, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Hat fur trim
+    // Nostrils
+    ctx.fillStyle = '#004000';
+    ctx.beginPath();
+    ctx.ellipse(centerX - 1, grinchObj.y - 9 + bounce, 0.8, 1.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(centerX + 1, grinchObj.y - 9 + bounce, 0.8, 1.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Santa hat (more cartoon-like)
+    ctx.fillStyle = '#FF0040';
+    ctx.beginPath();
+    ctx.moveTo(centerX - 18, grinchObj.y - 30 + bounce);
+    ctx.quadraticCurveTo(centerX - 8, grinchObj.y - 48 + bounce, centerX + 12, grinchObj.y - 45 + bounce);
+    ctx.quadraticCurveTo(centerX + 22, grinchObj.y - 40 + bounce, centerX + 18, grinchObj.y - 32 + bounce);
+    ctx.lineTo(centerX + 18, grinchObj.y - 30 + bounce);
+    ctx.lineTo(centerX - 18, grinchObj.y - 30 + bounce);
+    ctx.fill();
+    
+    // Hat brim
     ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.ellipse(centerX, grinchObj.y - 35, 18, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX, grinchObj.y - 30 + bounce, 20, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Hat pompom (bigger and fluffier)
+    // Hat pompom (bouncy)
     ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.arc(centerX + 12, grinchObj.y - 42, 6, 0, Math.PI * 2);
+    const pompomBounce = Math.sin(time * 4) * 2;
+    ctx.arc(centerX + 15, grinchObj.y - 42 + bounce + pompomBounce, 5, 0, Math.PI * 2);
     ctx.fill();
+    
     // Pompom texture
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const fluffX = centerX + 12 + Math.cos(angle) * 4;
-      const fluffY = grinchObj.y - 42 + Math.sin(angle) * 4;
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const fluffX = centerX + 15 + Math.cos(angle) * 4;
+      const fluffY = grinchObj.y - 42 + bounce + pompomBounce + Math.sin(angle) * 4;
       ctx.beginPath();
-      ctx.arc(fluffX, fluffY, 2, 0, Math.PI * 2);
+      ctx.arc(fluffX, fluffY, 1.5, 0, Math.PI * 2);
       ctx.fill();
     }
     
-    // Eyes (more expressive)
-    ctx.fillStyle = 'yellow';
+    // Eyes - large and cartoon-like
+    const eyeY = grinchObj.y - 15 + bounce;
+    
+    // Eye whites
+    ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.ellipse(centerX - 8, grinchObj.y - 18, 5, 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX - 9 + eyeShift, eyeY, 7, 9, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(centerX + 8, grinchObj.y - 18, 5, 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX + 9 - eyeShift, eyeY, 7, 9, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Eye pupils (red and menacing)
-    ctx.fillStyle = '#FF0000';
+    // Pupils - shifty and mischievous
+    ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.arc(centerX - 8, grinchObj.y - 18, 3, 0, Math.PI * 2);
+    ctx.arc(centerX - 9 + eyeShift * 2, eyeY + 1, 4, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(centerX + 8, grinchObj.y - 18, 3, 0, Math.PI * 2);
+    ctx.arc(centerX + 9 - eyeShift * 2, eyeY + 1, 4, 0, Math.PI * 2);
     ctx.fill();
     
-    // Eyebrows (menacing)
-    ctx.strokeStyle = '#006400';
-    ctx.lineWidth = 2;
+    // Eye highlights
+    ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.moveTo(centerX - 12, grinchObj.y - 25);
-    ctx.lineTo(centerX - 4, grinchObj.y - 22);
-    ctx.moveTo(centerX + 4, grinchObj.y - 22);
-    ctx.lineTo(centerX + 12, grinchObj.y - 25);
+    ctx.arc(centerX - 8 + eyeShift * 2, eyeY - 1, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX + 10 - eyeShift * 2, eyeY - 1, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eyebrows - very expressive and angled
+    ctx.strokeStyle = '#006000';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 15, grinchObj.y - 24 + bounce);
+    ctx.lineTo(centerX - 5, grinchObj.y - 20 + bounce);
+    ctx.moveTo(centerX + 5, grinchObj.y - 20 + bounce);
+    ctx.lineTo(centerX + 15, grinchObj.y - 24 + bounce);
     ctx.stroke();
     
-    // Grinch smile (mischievous)
-    ctx.strokeStyle = '#006400';
-    ctx.lineWidth = 2;
+    // Classic Grinch grin - wide and mischievous
+    ctx.strokeStyle = '#004000';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.arc(centerX, grinchObj.y - 5, 8, 0.2, Math.PI - 0.2);
+    ctx.arc(centerX + smirkTwitch, grinchObj.y - 2 + bounce, 10, 0.1, Math.PI - 0.1);
     ctx.stroke();
     
-    // Arms (more detailed)
-    ctx.fillStyle = '#228B22';
-    // Left arm
+    // Grin lines at corners
     ctx.beginPath();
-    ctx.ellipse(grinchObj.x + 8, centerY, 6, 15, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    // Right arm
+    ctx.moveTo(centerX - 10 + smirkTwitch, grinchObj.y - 2 + bounce);
+    ctx.lineTo(centerX - 12 + smirkTwitch, grinchObj.y + 1 + bounce);
+    ctx.moveTo(centerX + 10 + smirkTwitch, grinchObj.y - 2 + bounce);
+    ctx.lineTo(centerX + 12 + smirkTwitch, grinchObj.y + 1 + bounce);
+    ctx.stroke();
+    
+    // Arms - more cartoon-like
+    ctx.fillStyle = '#00A000';
+    
+    // Left arm with slight animation
+    const leftArmSway = Math.sin(time * 1.5) * 0.2;
     ctx.beginPath();
-    ctx.ellipse(grinchObj.x + grinchObj.width - 8, centerY, 6, 15, 0.3, 0, Math.PI * 2);
+    ctx.ellipse(grinchObj.x + 6, centerY - 5 + bounce, 7, 18, -0.2 + leftArmSway, 0, Math.PI * 2);
     ctx.fill();
     
-    // Hands
-    ctx.fillStyle = '#32CD32';
+    // Right arm with animation
+    const rightArmSway = Math.sin(time * 1.7) * 0.2;
     ctx.beginPath();
-    ctx.arc(grinchObj.x + 8, centerY + 12, 4, 0, Math.PI * 2);
+    ctx.ellipse(grinchObj.x + grinchObj.width - 6, centerY - 5 + bounce, 7, 18, 0.2 + rightArmSway, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Hands - bigger and more cartoon-like
+    ctx.fillStyle = '#40FF40';
+    ctx.beginPath();
+    ctx.arc(grinchObj.x + 6, centerY + 10 + bounce, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(grinchObj.x + grinchObj.width - 8, centerY + 12, 4, 0, Math.PI * 2);
+    ctx.arc(grinchObj.x + grinchObj.width - 6, centerY + 10 + bounce, 5, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Fingers (simple but cartoon-like)
+    ctx.fillStyle = '#40FF40';
+    for (let hand = 0; hand < 2; hand++) {
+      const handX = hand === 0 ? grinchObj.x + 6 : grinchObj.x + grinchObj.width - 6;
+      for (let finger = 0; finger < 3; finger++) {
+        const fingerAngle = (finger - 1) * 0.4;
+        const fingerX = handX + Math.cos(fingerAngle) * 6;
+        const fingerY = centerY + 10 + bounce + Math.sin(fingerAngle) * 6;
+        ctx.beginPath();
+        ctx.ellipse(fingerX, fingerY, 1.5, 3, fingerAngle, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
     
     ctx.restore();
   }, []);
