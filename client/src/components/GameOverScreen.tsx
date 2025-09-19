@@ -1,7 +1,12 @@
 import { useGrinchGame } from "../lib/stores/useGrinchGame";
 
 export default function GameOverScreen() {
-  const { score, restartGame } = useGrinchGame();
+  const { gameState, score, restartGame } = useGrinchGame();
+
+  // Only show when game is over
+  if (gameState !== 'gameOver') {
+    return null;
+  }
 
   return (
     <div style={{
