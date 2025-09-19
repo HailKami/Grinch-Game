@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useGrinchGame } from "../lib/stores/useGrinchGame";
 import { useAudio } from "../lib/stores/useAudio";
 
@@ -19,41 +19,47 @@ export default function GrinchGame2D() {
   const gameLoopRef = useRef<number>();
   const keysRef = useRef<{ [key: string]: boolean }>({});
   
+  // Game state stored in refs to avoid re-renders during game loop
+  const grinchRef = useRef<GameObject>({ x: 375, y: 520, width: 50, height: 60 });
+  const santaRef = useRef<GameObject>({ x: 100, y: 50, width: 80, height: 60 });
+  const giftsRef = useRef<Gift[]>([]);
+  const scoreRef = useRef(0);
+  const difficultyRef = useRef(0);
+  const gameTimeRef = useRef(0);
+  const lastGiftSpawnRef = useRef(0);
+  
   const {
     gameState,
-    score,
-    difficulty,
     startGame,
     endGame,
     restartGame,
   } = useGrinchGame();
   
   const { playHit, playSuccess } = useAudio();
-  
-  // Game state
-  const [grinch, setGrinch] = useState<GameObject>({ x: 375, y: 520, width: 50, height: 60 });
-  const [santa, setSanta] = useState<GameObject>({ x: 100, y: 50, width: 80, height: 60 });
-  const [gifts, setGifts] = useState<Gift[]>([]);
-  const [currentScore, setCurrentScore] = useState(0);
-  const [currentDifficulty, setCurrentDifficulty] = useState(0);
-  const [gameTime, setGameTime] = useState(0);
 
   // Initialize game
   useEffect(() => {
     startGame();
   }, [startGame]);
 
+  // Reset game state when restarting
+  const resetGameState = useCallback(() => {
+    grinchRef.current = { x: 375, y: 520, width: 50, height: 60 };
+    santaRef.current = { x: 100, y: 50, width: 80, height: 60 };
+    giftsRef.current = [];
+    scoreRef.current = 0;
+    difficultyRef.current = 0;
+    gameTimeRef.current = 0;
+    lastGiftSpawnRef.current = 0;
+  }, []);
+
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       keysRef.current[e.code] = true;
       if ((e.code === 'Space' || e.code === 'KeyR') && gameState === 'gameOver') {
+        resetGameState();
         restartGame();
-        setCurrentScore(0);
-        setCurrentDifficulty(0);
-        setGameTime(0);
-        setGifts([]);
-        setGrinch({ x: 375, y: 520, width: 50, height: 60 });
       }
     };
 
@@ -67,7 +73,7 @@ export default function GrinchGame2D() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState, restartGame]);
+  }, [gameState, restartGame, resetGameState]);
 
   // Draw functions
   const drawGrinch = useCallback((ctx: CanvasRenderingContext2D, grinchObj: GameObject) => {
@@ -175,7 +181,12 @@ export default function GrinchGame2D() {
 
   // Game loop
   useEffect(() => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing') {
+      if (gameLoopRef.current) {
+        cancelAnimationFrame(gameLoopRef.current);
+      }
+      return;
+    }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -184,10 +195,11 @@ export default function GrinchGame2D() {
     if (!ctx) return;
 
     let lastTime = 0;
-    let lastGiftSpawn = 0;
 
     const gameLoop = (currentTime: number) => {
-      const deltaTime = (currentTime - lastTime) / 1000;
+      if (gameState !== 'playing') return;
+      
+      const deltaTime = Math.min((currentTime - lastTime) / 1000, 1/30); // Cap deltaTime
       lastTime = currentTime;
 
       // Clear canvas
@@ -200,8 +212,8 @@ export default function GrinchGame2D() {
       // Draw snow
       ctx.fillStyle = 'white';
       for (let i = 0; i < 50; i++) {
-        const x = (i * 17 + gameTime * 20) % canvas.width;
-        const y = (i * 23 + gameTime * 50) % canvas.height;
+        const x = (i * 17 + gameTimeRef.current * 20) % canvas.width;
+        const y = (i * 23 + gameTimeRef.current * 50) % canvas.height;
         ctx.beginPath();
         ctx.arc(x, y, 2, 0, Math.PI * 2);
         ctx.fill();
@@ -212,67 +224,59 @@ export default function GrinchGame2D() {
       ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
 
       // Update Grinch position
-      setGrinch(prev => {
-        let newX = prev.x;
-        const speed = 300; // pixels per second
-        
-        if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
-          newX -= speed * deltaTime;
-        }
-        if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
-          newX += speed * deltaTime;
-        }
-        
-        // Keep Grinch on screen
-        newX = Math.max(0, Math.min(canvas.width - prev.width, newX));
-        
-        return { ...prev, x: newX };
-      });
+      let newGrinchX = grinchRef.current.x;
+      const speed = 300; // pixels per second
+      
+      if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
+        newGrinchX -= speed * deltaTime;
+      }
+      if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
+        newGrinchX += speed * deltaTime;
+      }
+      
+      // Keep Grinch on screen
+      newGrinchX = Math.max(0, Math.min(canvas.width - grinchRef.current.width, newGrinchX));
+      grinchRef.current.x = newGrinchX;
 
       // Update Santa position (side to side movement)
-      setSanta(prev => {
-        const santaSpeed = 2 + currentDifficulty * 0.5;
-        const newX = canvas.width / 2 + Math.sin(gameTime * santaSpeed) * 200;
-        return { ...prev, x: newX };
-      });
+      const santaSpeed = 2 + difficultyRef.current * 0.5;
+      const newSantaX = canvas.width / 2 + Math.sin(gameTimeRef.current * santaSpeed) * 200;
+      santaRef.current.x = newSantaX;
 
       // Spawn gifts
-      const spawnRate = Math.max(0.8, 2.5 - currentDifficulty * 0.3);
-      if (gameTime - lastGiftSpawn > spawnRate) {
-        setGifts(prev => [...prev, {
+      const spawnRate = Math.max(0.8, 2.5 - difficultyRef.current * 0.3);
+      if (gameTimeRef.current - lastGiftSpawnRef.current > spawnRate) {
+        giftsRef.current.push({
           id: Math.random().toString(36).substr(2, 9),
-          x: santa.x + 30 + (Math.random() - 0.5) * 40,
-          y: santa.y + 50,
+          x: santaRef.current.x + 30 + (Math.random() - 0.5) * 40,
+          y: santaRef.current.y + 50,
           width: 25,
           height: 25,
-          speed: 150 + currentDifficulty * 50
-        }]);
-        lastGiftSpawn = gameTime;
+          speed: 150 + difficultyRef.current * 50
+        });
+        lastGiftSpawnRef.current = gameTimeRef.current;
       }
 
       // Update gifts
-      setGifts(prev => {
-        return prev.map(gift => ({
-          ...gift,
-          y: gift.y + gift.speed * deltaTime
-        })).filter(gift => gift.y < canvas.height + 50);
-      });
+      giftsRef.current = giftsRef.current.map(gift => ({
+        ...gift,
+        y: gift.y + gift.speed * deltaTime
+      })).filter(gift => gift.y < canvas.height + 50);
 
-      // Check collisions
-      setGifts(prev => {
-        const remainingGifts = prev.filter(gift => {
-          if (checkCollision(grinch, gift)) {
-            setCurrentScore(s => s + 1);
-            playSuccess();
-            return false;
-          }
-          return true;
-        });
-        return remainingGifts;
-      });
+      // Check collisions and remove caught gifts
+      const newGifts: Gift[] = [];
+      for (const gift of giftsRef.current) {
+        if (checkCollision(grinchRef.current, gift)) {
+          scoreRef.current += 1;
+          playSuccess();
+        } else {
+          newGifts.push(gift);
+        }
+      }
+      giftsRef.current = newGifts;
 
       // Check for game over (gifts hit ground)
-      const hitGround = gifts.some(gift => gift.y > canvas.height - 75);
+      const hitGround = giftsRef.current.some(gift => gift.y > canvas.height - 60);
       if (hitGround) {
         endGame();
         playHit();
@@ -280,18 +284,29 @@ export default function GrinchGame2D() {
       }
 
       // Increase difficulty
-      const newDifficulty = Math.floor(gameTime / 10);
-      if (newDifficulty > currentDifficulty) {
-        setCurrentDifficulty(newDifficulty);
+      const newDifficulty = Math.floor(gameTimeRef.current / 10);
+      if (newDifficulty > difficultyRef.current) {
+        difficultyRef.current = newDifficulty;
       }
 
       // Update game time
-      setGameTime(t => t + deltaTime);
+      gameTimeRef.current += deltaTime;
 
       // Draw game objects
-      drawGrinch(ctx, grinch);
-      drawSanta(ctx, santa);
-      gifts.forEach(gift => drawGift(ctx, gift));
+      drawGrinch(ctx, grinchRef.current);
+      drawSanta(ctx, santaRef.current);
+      giftsRef.current.forEach(gift => drawGift(ctx, gift));
+      
+      // Draw score
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 24px Arial';
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 2;
+      ctx.strokeText(`Score: ${scoreRef.current}`, 20, 40);
+      ctx.fillText(`Score: ${scoreRef.current}`, 20, 40);
+      
+      ctx.strokeText(`Level: ${difficultyRef.current + 1}`, 20, 70);
+      ctx.fillText(`Level: ${difficultyRef.current + 1}`, 20, 70);
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     };
@@ -303,7 +318,14 @@ export default function GrinchGame2D() {
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState, grinch, santa, gifts, currentScore, currentDifficulty, gameTime, endGame, playHit, playSuccess, drawGrinch, drawSanta, drawGift, checkCollision]);
+  }, [gameState, endGame, playHit, playSuccess, drawGrinch, drawSanta, drawGift, checkCollision]);
+
+  // Reset when game starts
+  useEffect(() => {
+    if (gameState === 'playing') {
+      resetGameState();
+    }
+  }, [gameState, resetGameState]);
 
   return (
     <canvas
