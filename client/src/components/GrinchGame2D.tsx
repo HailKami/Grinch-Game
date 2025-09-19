@@ -79,30 +79,133 @@ export default function GrinchGame2D() {
   const drawGrinch = useCallback((ctx: CanvasRenderingContext2D, grinchObj: GameObject) => {
     ctx.save();
     
-    // Grinch body (green)
-    ctx.fillStyle = '#4a7c59';
-    ctx.fillRect(grinchObj.x, grinchObj.y, grinchObj.width, grinchObj.height);
+    const centerX = grinchObj.x + grinchObj.width / 2;
+    const centerY = grinchObj.y + grinchObj.height / 2;
     
-    // Grinch head
-    ctx.fillRect(grinchObj.x + 10, grinchObj.y - 30, 30, 30);
+    // Grinch body (pear-shaped, green and furry)
+    ctx.fillStyle = '#228B22';
+    ctx.beginPath();
+    ctx.ellipse(centerX, centerY + 10, 22, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Santa hat
-    ctx.fillStyle = '#c41e3a';
-    ctx.fillRect(grinchObj.x + 12, grinchObj.y - 45, 26, 20);
+    // Add some fur texture
+    ctx.fillStyle = '#32CD32';
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const fuzzX = centerX + Math.cos(angle) * 18;
+      const fuzzY = centerY + 5 + Math.sin(angle) * 25;
+      ctx.beginPath();
+      ctx.arc(fuzzX, fuzzY, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
     
-    // Hat pompom
+    // Grinch head (larger, more oval)
+    ctx.fillStyle = '#228B22';
+    ctx.beginPath();
+    ctx.ellipse(centerX, grinchObj.y - 15, 20, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Head fur details
+    ctx.fillStyle = '#32CD32';
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const fuzzX = centerX + Math.cos(angle) * 16;
+      const fuzzY = grinchObj.y - 15 + Math.sin(angle) * 20;
+      ctx.beginPath();
+      ctx.arc(fuzzX, fuzzY, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Grinch snout/muzzle
+    ctx.fillStyle = '#90EE90';
+    ctx.beginPath();
+    ctx.ellipse(centerX, grinchObj.y - 8, 12, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Santa hat (more detailed)
+    ctx.fillStyle = '#DC143C';
+    ctx.beginPath();
+    ctx.moveTo(centerX - 15, grinchObj.y - 35);
+    ctx.quadraticCurveTo(centerX - 5, grinchObj.y - 50, centerX + 10, grinchObj.y - 45);
+    ctx.quadraticCurveTo(centerX + 20, grinchObj.y - 40, centerX + 15, grinchObj.y - 30);
+    ctx.lineTo(centerX + 15, grinchObj.y - 35);
+    ctx.lineTo(centerX - 15, grinchObj.y - 35);
+    ctx.fill();
+    
+    // Hat fur trim
     ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.arc(grinchObj.x + 25, grinchObj.y - 45, 5, 0, Math.PI * 2);
+    ctx.ellipse(centerX, grinchObj.y - 35, 18, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Eyes
-    ctx.fillStyle = 'red';
+    // Hat pompom (bigger and fluffier)
+    ctx.fillStyle = 'white';
     ctx.beginPath();
-    ctx.arc(grinchObj.x + 18, grinchObj.y - 20, 3, 0, Math.PI * 2);
+    ctx.arc(centerX + 12, grinchObj.y - 42, 6, 0, Math.PI * 2);
+    ctx.fill();
+    // Pompom texture
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const fluffX = centerX + 12 + Math.cos(angle) * 4;
+      const fluffY = grinchObj.y - 42 + Math.sin(angle) * 4;
+      ctx.beginPath();
+      ctx.arc(fluffX, fluffY, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Eyes (more expressive)
+    ctx.fillStyle = 'yellow';
+    ctx.beginPath();
+    ctx.ellipse(centerX - 8, grinchObj.y - 18, 5, 6, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(grinchObj.x + 32, grinchObj.y - 20, 3, 0, Math.PI * 2);
+    ctx.ellipse(centerX + 8, grinchObj.y - 18, 5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eye pupils (red and menacing)
+    ctx.fillStyle = '#FF0000';
+    ctx.beginPath();
+    ctx.arc(centerX - 8, grinchObj.y - 18, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX + 8, grinchObj.y - 18, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eyebrows (menacing)
+    ctx.strokeStyle = '#006400';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 12, grinchObj.y - 25);
+    ctx.lineTo(centerX - 4, grinchObj.y - 22);
+    ctx.moveTo(centerX + 4, grinchObj.y - 22);
+    ctx.lineTo(centerX + 12, grinchObj.y - 25);
+    ctx.stroke();
+    
+    // Grinch smile (mischievous)
+    ctx.strokeStyle = '#006400';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(centerX, grinchObj.y - 5, 8, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    
+    // Arms (more detailed)
+    ctx.fillStyle = '#228B22';
+    // Left arm
+    ctx.beginPath();
+    ctx.ellipse(grinchObj.x + 8, centerY, 6, 15, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    // Right arm
+    ctx.beginPath();
+    ctx.ellipse(grinchObj.x + grinchObj.width - 8, centerY, 6, 15, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Hands
+    ctx.fillStyle = '#32CD32';
+    ctx.beginPath();
+    ctx.arc(grinchObj.x + 8, centerY + 12, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(grinchObj.x + grinchObj.width - 8, centerY + 12, 4, 0, Math.PI * 2);
     ctx.fill();
     
     ctx.restore();
@@ -111,40 +214,193 @@ export default function GrinchGame2D() {
   const drawSanta = useCallback((ctx: CanvasRenderingContext2D, santaObj: GameObject) => {
     ctx.save();
     
-    // Sleigh
+    const centerX = santaObj.x + 30;
+    
+    // Sleigh (more detailed and curved)
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(santaObj.x, santaObj.y + 20, 60, 25);
-    
-    // Santa
-    ctx.fillStyle = '#c41e3a';
-    ctx.fillRect(santaObj.x + 15, santaObj.y, 30, 40);
-    
-    // Santa's head
-    ctx.fillStyle = '#FDBCB4';
     ctx.beginPath();
-    ctx.arc(santaObj.x + 30, santaObj.y - 5, 15, 0, Math.PI * 2);
+    ctx.moveTo(santaObj.x - 5, santaObj.y + 35);
+    ctx.quadraticCurveTo(santaObj.x + 30, santaObj.y + 20, santaObj.x + 65, santaObj.y + 35);
+    ctx.quadraticCurveTo(santaObj.x + 65, santaObj.y + 50, santaObj.x + 60, santaObj.y + 50);
+    ctx.lineTo(santaObj.x, santaObj.y + 50);
+    ctx.quadraticCurveTo(santaObj.x - 5, santaObj.y + 50, santaObj.x - 5, santaObj.y + 35);
     ctx.fill();
     
-    // Santa's hat
-    ctx.fillStyle = '#c41e3a';
-    ctx.fillRect(santaObj.x + 20, santaObj.y - 20, 20, 15);
+    // Sleigh decorations
+    ctx.fillStyle = '#FFD700';
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      ctx.arc(santaObj.x + i * 12 + 5, santaObj.y + 45, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
     
-    // Reindeer
+    // Santa's body (jolly and round)
+    ctx.fillStyle = '#DC143C';
+    ctx.beginPath();
+    ctx.ellipse(centerX, santaObj.y + 15, 18, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Santa's belt
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(centerX - 18, santaObj.y + 20, 36, 6);
+    
+    // Belt buckle
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(centerX - 4, santaObj.y + 21, 8, 4);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(centerX - 2, santaObj.y + 22, 4, 2);
+    
+    // Santa's head (round and cheerful)
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath();
+    ctx.arc(centerX, santaObj.y - 8, 16, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Santa's beard (fluffy and white)
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.ellipse(centerX, santaObj.y + 5, 14, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Beard texture
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const beardX = centerX + Math.cos(angle) * 10;
+      const beardY = santaObj.y + 5 + Math.sin(angle) * 8;
+      ctx.beginPath();
+      ctx.arc(beardX, beardY, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Santa's mustache
+    ctx.beginPath();
+    ctx.ellipse(centerX, santaObj.y - 3, 8, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Santa's hat (more detailed)
+    ctx.fillStyle = '#DC143C';
+    ctx.beginPath();
+    ctx.moveTo(centerX - 12, santaObj.y - 20);
+    ctx.quadraticCurveTo(centerX, santaObj.y - 35, centerX + 18, santaObj.y - 25);
+    ctx.quadraticCurveTo(centerX + 20, santaObj.y - 20, centerX + 15, santaObj.y - 15);
+    ctx.lineTo(centerX - 12, santaObj.y - 15);
+    ctx.fill();
+    
+    // Hat trim
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.ellipse(centerX + 2, santaObj.y - 15, 15, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Hat pompom
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(centerX + 15, santaObj.y - 22, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Santa's eyes (jolly)
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(centerX - 5, santaObj.y - 12, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX + 5, santaObj.y - 12, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eye twinkle
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(centerX - 4, santaObj.y - 13, 1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX + 6, santaObj.y - 13, 1, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Santa's rosy cheeks
+    ctx.fillStyle = '#FF69B4';
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.arc(centerX - 10, santaObj.y - 5, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX + 10, santaObj.y - 5, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    
+    // Reindeer (more detailed Rudolph)
+    const reindeerX = santaObj.x + 85;
+    const reindeerY = santaObj.y + 15;
+    
+    // Reindeer body
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(santaObj.x + 65, santaObj.y + 10, 40, 20);
+    ctx.beginPath();
+    ctx.ellipse(reindeerX, reindeerY, 20, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
     
     // Reindeer head
-    ctx.fillRect(santaObj.x + 100, santaObj.y + 5, 20, 15);
+    ctx.beginPath();
+    ctx.ellipse(reindeerX + 25, reindeerY - 5, 12, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Antlers
+    // Reindeer snout
+    ctx.fillStyle = '#654321';
+    ctx.beginPath();
+    ctx.ellipse(reindeerX + 33, reindeerY - 2, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Rudolph's red nose
+    ctx.fillStyle = '#FF0000';
+    ctx.beginPath();
+    ctx.arc(reindeerX + 37, reindeerY - 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Reindeer eyes
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(reindeerX + 22, reindeerY - 8, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(reindeerX + 28, reindeerY - 8, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Antlers (more elaborate)
     ctx.strokeStyle = '#654321';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(santaObj.x + 105, santaObj.y);
-    ctx.lineTo(santaObj.x + 105, santaObj.y - 15);
-    ctx.moveTo(santaObj.x + 115, santaObj.y);
-    ctx.lineTo(santaObj.x + 115, santaObj.y - 15);
+    // Left antler main branch
+    ctx.moveTo(reindeerX + 20, reindeerY - 15);
+    ctx.lineTo(reindeerX + 18, reindeerY - 25);
+    // Left antler branches
+    ctx.moveTo(reindeerX + 19, reindeerY - 20);
+    ctx.lineTo(reindeerX + 16, reindeerY - 22);
+    ctx.moveTo(reindeerX + 19, reindeerY - 18);
+    ctx.lineTo(reindeerX + 22, reindeerY - 20);
+    
+    // Right antler main branch
+    ctx.moveTo(reindeerX + 30, reindeerY - 15);
+    ctx.lineTo(reindeerX + 32, reindeerY - 25);
+    // Right antler branches
+    ctx.moveTo(reindeerX + 31, reindeerY - 20);
+    ctx.lineTo(reindeerX + 34, reindeerY - 22);
+    ctx.moveTo(reindeerX + 31, reindeerY - 18);
+    ctx.lineTo(reindeerX + 28, reindeerY - 20);
     ctx.stroke();
+    
+    // Reindeer legs
+    ctx.fillStyle = '#8B4513';
+    for (let i = 0; i < 4; i++) {
+      const legX = reindeerX - 10 + i * 8;
+      ctx.beginPath();
+      ctx.ellipse(legX, reindeerY + 12, 2, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Hooves
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.ellipse(legX, reindeerY + 20, 3, 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#8B4513';
+    }
     
     ctx.restore();
   }, []);
