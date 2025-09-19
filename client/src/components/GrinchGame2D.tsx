@@ -41,6 +41,12 @@ export default function GrinchGame2D() {
     flipT: 0
   });
   
+  // Grinch walking animation controller
+  const grinchAnimRef = useRef({
+    prevX: 375,
+    legPhase: 0
+  });
+  
   const {
     gameState,
     startGame,
@@ -76,6 +82,12 @@ export default function GrinchGame2D() {
       nextFlipCooldown: 0,
       facingLeft: false,
       flipT: 0
+    };
+    
+    // Reset Grinch animation controller
+    grinchAnimRef.current = {
+      prevX: 375,
+      legPhase: 0
     };
   }, []);
 
@@ -294,6 +306,44 @@ export default function GrinchGame2D() {
     ctx.fillStyle = 'white';
     ctx.fillRect(grinchObj.x + 2, centerY + 6 + bounce, 6, 3);
     ctx.fillRect(grinchObj.x + grinchObj.width - 8, centerY + 6 + bounce, 6, 3);
+    
+    // Walking legs - drawn behind body
+    const legPhase = grinchAnimRef.current.legPhase;
+    const legY = grinchObj.y + grinchObj.height - 8 + bounce;
+    
+    // Left leg with walking animation
+    const leftLegOffset = Math.sin(legPhase) * 3;
+    ctx.fillStyle = '#228B22'; // Green leg
+    ctx.beginPath();
+    ctx.ellipse(centerX - 8, legY + leftLegOffset, 4, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Left boot
+    ctx.fillStyle = '#000000'; // Black boot
+    ctx.beginPath();
+    ctx.ellipse(centerX - 8, legY + 8 + leftLegOffset, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Left boot cuff
+    ctx.fillStyle = 'white';
+    ctx.fillRect(centerX - 11, legY + 4 + leftLegOffset, 6, 3);
+    
+    // Right leg with opposite walking animation
+    const rightLegOffset = Math.sin(legPhase + Math.PI) * 3;
+    ctx.fillStyle = '#228B22'; // Green leg
+    ctx.beginPath();
+    ctx.ellipse(centerX + 8, legY + rightLegOffset, 4, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Right boot
+    ctx.fillStyle = '#000000'; // Black boot
+    ctx.beginPath();
+    ctx.ellipse(centerX + 8, legY + 8 + rightLegOffset, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Right boot cuff
+    ctx.fillStyle = 'white';
+    ctx.fillRect(centerX + 5, legY + 4 + rightLegOffset, 6, 3);
     
     ctx.restore();
   }, []);
@@ -721,6 +771,24 @@ export default function GrinchGame2D() {
       // Keep Grinch on screen
       newGrinchX = Math.max(0, Math.min(canvas.width - grinchRef.current.width, newGrinchX));
       grinchRef.current.x = newGrinchX;
+      
+      // Update Grinch walking animation
+      const grinchAnim = grinchAnimRef.current;
+      const grinchVelocity = Math.abs(newGrinchX - grinchAnim.prevX);
+      const isMoving = grinchVelocity > 0.5; // Only animate if moving more than 0.5px per frame
+      
+      if (isMoving) {
+        // Update leg phase based on movement speed
+        grinchAnim.legPhase += grinchVelocity * 0.1;
+        if (grinchAnim.legPhase > Math.PI * 2) {
+          grinchAnim.legPhase -= Math.PI * 2;
+        }
+      } else {
+        // Reset to standing position when not moving
+        grinchAnim.legPhase = 0;
+      }
+      
+      grinchAnim.prevX = newGrinchX;
 
       // Update Santa motion controller for unpredictable movement
       const motion = santaMotionRef.current;
