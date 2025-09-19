@@ -225,22 +225,41 @@ export default function GrinchGame2D() {
     const rudolphBlink = Math.sin(time * 3) > 0.7 ? 1 : 0.3; // Nose brightness
     const sparkleTime = time * 6;
     
-    // Sleigh (more detailed and curved) with rocking animation
+    // Sleigh (proper Christmas sleigh design) with rocking animation
     ctx.fillStyle = '#8B4513';
     ctx.beginPath();
-    ctx.moveTo(santaObj.x - 5, santaObj.y + 35 + sleighRock);
-    ctx.quadraticCurveTo(santaObj.x + 30, santaObj.y + 20 + sleighRock, santaObj.x + 65, santaObj.y + 35 + sleighRock);
-    ctx.quadraticCurveTo(santaObj.x + 65, santaObj.y + 50 + sleighRock, santaObj.x + 60, santaObj.y + 50 + sleighRock);
-    ctx.lineTo(santaObj.x, santaObj.y + 50 + sleighRock);
-    ctx.quadraticCurveTo(santaObj.x - 5, santaObj.y + 50 + sleighRock, santaObj.x - 5, santaObj.y + 35 + sleighRock);
+    // Main sleigh body - curved like a boat
+    ctx.moveTo(santaObj.x - 10, santaObj.y + 25 + sleighRock);
+    ctx.quadraticCurveTo(santaObj.x + 30, santaObj.y + 15 + sleighRock, santaObj.x + 70, santaObj.y + 25 + sleighRock);
+    ctx.lineTo(santaObj.x + 70, santaObj.y + 45 + sleighRock);
+    ctx.quadraticCurveTo(santaObj.x + 30, santaObj.y + 50 + sleighRock, santaObj.x - 10, santaObj.y + 45 + sleighRock);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Sleigh front curl (decorative)
+    ctx.strokeStyle = '#654321';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(santaObj.x - 8, santaObj.y + 20 + sleighRock, 8, 0, Math.PI);
+    ctx.stroke();
+    
+    // Sleigh runners (more prominent)
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(santaObj.x - 15, santaObj.y + 48 + sleighRock, 90, 4);
+    // Runner curves
+    ctx.beginPath();
+    ctx.arc(santaObj.x - 15, santaObj.y + 50 + sleighRock, 4, Math.PI, 0);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(santaObj.x + 75, santaObj.y + 50 + sleighRock, 4, Math.PI, 0);
     ctx.fill();
     
     // Sleigh decorations with sparkling effect
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       const sparkle = Math.sin(sparkleTime + i) * 0.5 + 0.5;
-      ctx.fillStyle = `hsl(45, 100%, ${50 + sparkle * 30}%)`; // Golden sparkle
+      ctx.fillStyle = `hsl(45, 100%, ${50 + sparkle * 30}%)`;
       ctx.beginPath();
-      ctx.arc(santaObj.x + i * 12 + 5, santaObj.y + 45 + sleighRock, 2 + sparkle, 0, Math.PI * 2);
+      ctx.arc(santaObj.x + i * 25 + 10, santaObj.y + 40 + sleighRock, 3 + sparkle, 0, Math.PI * 2);
       ctx.fill();
     }
     
@@ -354,95 +373,113 @@ export default function GrinchGame2D() {
     ctx.fill();
     ctx.globalAlpha = 1;
     
-    // Reindeer (more detailed Rudolph) with flying animation
-    const reindeerX = santaObj.x + 85;
-    const reindeerY = santaObj.y + 15 + sleighRock;
-    const flyBounce = Math.sin(time * 2.8) * 2;
-    const headBob = Math.sin(time * 3.2) * 1.5;
+    // Team of Reindeer with flying animation
+    const baseReindeerY = santaObj.y + 15 + sleighRock;
+    const reindeerNames = ['Dasher', 'Dancer', 'Prancer', 'Rudolph'];
     
-    // Reindeer body with flying motion
-    ctx.fillStyle = '#8B4513';
-    ctx.beginPath();
-    ctx.ellipse(reindeerX, reindeerY + flyBounce, 20, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Reindeer head with head bobbing
-    ctx.beginPath();
-    ctx.ellipse(reindeerX + 25, reindeerY - 5 + flyBounce + headBob, 12, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Reindeer snout
-    ctx.fillStyle = '#654321';
-    ctx.beginPath();
-    ctx.ellipse(reindeerX + 33, reindeerY - 2 + flyBounce + headBob, 6, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Rudolph's red nose with glowing/blinking effect
-    ctx.fillStyle = '#FF0000';
-    ctx.globalAlpha = rudolphBlink;
-    ctx.beginPath();
-    ctx.arc(reindeerX + 37, reindeerY - 2 + flyBounce + headBob, 3 + (rudolphBlink - 0.3) * 0.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Nose glow effect
-    if (rudolphBlink > 0.8) {
-      ctx.globalAlpha = 0.3;
-      ctx.fillStyle = '#FF6666';
+    // Draw reindeer team
+    for (let r = 0; r < 4; r++) {
+      const reindeerX = santaObj.x + 80 + r * 30;
+      const individualBounce = Math.sin(time * 2.8 + r * 0.5) * 2;
+      const individualBob = Math.sin(time * 3.2 + r * 0.3) * 1.5;
+      const reindeerY = baseReindeerY + individualBounce;
+      const isRudolph = r === 3; // Last reindeer is Rudolph
+      
+      // Harness lines connecting to sleigh
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(reindeerX + 37, reindeerY - 2 + flyBounce + headBob, 6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    
-    // Reindeer eyes with blinking
-    const reindeerBlink = Math.sin(time * 0.4) > 0.92 ? 0.2 : 1;
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.ellipse(reindeerX + 22, reindeerY - 8 + flyBounce + headBob, 2, 2 * reindeerBlink, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(reindeerX + 28, reindeerY - 8 + flyBounce + headBob, 2, 2 * reindeerBlink, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Antlers (more elaborate) with slight sway
-    const antlerSway = Math.sin(time * 1.8) * 1;
-    ctx.strokeStyle = '#654321';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    // Left antler main branch
-    ctx.moveTo(reindeerX + 20, reindeerY - 15 + flyBounce + headBob);
-    ctx.lineTo(reindeerX + 18 + antlerSway, reindeerY - 25 + flyBounce + headBob);
-    // Left antler branches
-    ctx.moveTo(reindeerX + 19, reindeerY - 20 + flyBounce + headBob);
-    ctx.lineTo(reindeerX + 16 + antlerSway, reindeerY - 22 + flyBounce + headBob);
-    ctx.moveTo(reindeerX + 19, reindeerY - 18 + flyBounce + headBob);
-    ctx.lineTo(reindeerX + 22 + antlerSway * 0.5, reindeerY - 20 + flyBounce + headBob);
-    
-    // Right antler main branch
-    ctx.moveTo(reindeerX + 30, reindeerY - 15 + flyBounce + headBob);
-    ctx.lineTo(reindeerX + 32 + antlerSway, reindeerY - 25 + flyBounce + headBob);
-    // Right antler branches
-    ctx.moveTo(reindeerX + 31, reindeerY - 20 + flyBounce + headBob);
-    ctx.lineTo(reindeerX + 34 + antlerSway, reindeerY - 22 + flyBounce + headBob);
-    ctx.moveTo(reindeerX + 31, reindeerY - 18 + flyBounce + headBob);
-    ctx.lineTo(reindeerX + 28 + antlerSway * 0.5, reindeerY - 20 + flyBounce + headBob);
-    ctx.stroke();
-    
-    // Reindeer legs with galloping animation
-    ctx.fillStyle = '#8B4513';
-    for (let i = 0; i < 4; i++) {
-      const legX = reindeerX - 10 + i * 8;
-      const legFlap = Math.sin(time * 4 + i * Math.PI/2) * 3; // Galloping motion
+      ctx.moveTo(santaObj.x + 60, santaObj.y + 30 + sleighRock);
+      ctx.lineTo(reindeerX, reindeerY);
+      ctx.stroke();
+      
+      // Reindeer body with flying motion
+      ctx.fillStyle = '#8B4513';
       ctx.beginPath();
-      ctx.ellipse(legX, reindeerY + 12 + flyBounce + legFlap, 2, 8, legFlap * 0.1, 0, Math.PI * 2);
+      ctx.ellipse(reindeerX, reindeerY, 15, 8, 0, 0, Math.PI * 2);
       ctx.fill();
       
-      // Hooves with movement
+      // Reindeer head with head bobbing
+      ctx.beginPath();
+      ctx.ellipse(reindeerX + 18, reindeerY - 3 + individualBob, 8, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Reindeer snout
+      ctx.fillStyle = '#654321';
+      ctx.beginPath();
+      ctx.ellipse(reindeerX + 24, reindeerY - 1 + individualBob, 4, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Nose (red for Rudolph, black for others)
+      if (isRudolph) {
+        // Rudolph's red nose with glowing/blinking effect
+        ctx.fillStyle = '#FF0000';
+        ctx.globalAlpha = rudolphBlink;
+        ctx.beginPath();
+        ctx.arc(reindeerX + 27, reindeerY - 1 + individualBob, 2 + (rudolphBlink - 0.3) * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Nose glow effect
+        if (rudolphBlink > 0.8) {
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = '#FF6666';
+          ctx.beginPath();
+          ctx.arc(reindeerX + 27, reindeerY - 1 + individualBob, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(reindeerX + 27, reindeerY - 1 + individualBob, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Reindeer eyes with individual blinking
+      const reindeerBlink = Math.sin(time * 0.4 + r * 0.2) > 0.92 ? 0.2 : 1;
       ctx.fillStyle = '#000000';
       ctx.beginPath();
-      ctx.ellipse(legX, reindeerY + 20 + flyBounce + legFlap, 3, 2, 0, 0, Math.PI * 2);
+      ctx.ellipse(reindeerX + 16, reindeerY - 5 + individualBob, 1.5, 1.5 * reindeerBlink, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(reindeerX + 20, reindeerY - 5 + individualBob, 1.5, 1.5 * reindeerBlink, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Antlers with individual sway
+      const antlerSway = Math.sin(time * 1.8 + r * 0.4) * 0.8;
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      
+      // Left antler
+      ctx.moveTo(reindeerX + 15, reindeerY - 10 + individualBob);
+      ctx.lineTo(reindeerX + 14 + antlerSway, reindeerY - 16 + individualBob);
+      ctx.moveTo(reindeerX + 14.5, reindeerY - 13 + individualBob);
+      ctx.lineTo(reindeerX + 12 + antlerSway, reindeerY - 14 + individualBob);
+      
+      // Right antler
+      ctx.moveTo(reindeerX + 21, reindeerY - 10 + individualBob);
+      ctx.lineTo(reindeerX + 22 + antlerSway, reindeerY - 16 + individualBob);
+      ctx.moveTo(reindeerX + 21.5, reindeerY - 13 + individualBob);
+      ctx.lineTo(reindeerX + 24 + antlerSway, reindeerY - 14 + individualBob);
+      ctx.stroke();
+      
+      // Reindeer legs with individual galloping
       ctx.fillStyle = '#8B4513';
+      for (let i = 0; i < 4; i++) {
+        const legX = reindeerX - 6 + i * 4;
+        const legFlap = Math.sin(time * 4 + r * 0.5 + i * Math.PI/2) * 2;
+        ctx.beginPath();
+        ctx.ellipse(legX, reindeerY + 8 + legFlap, 1.5, 6, legFlap * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Hooves
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.ellipse(legX, reindeerY + 14 + legFlap, 2, 1.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#8B4513';
+      }
     }
     
     // Add magical sparkles around the sleigh
