@@ -12,6 +12,7 @@ interface GameObject {
 interface Gift extends GameObject {
   id: string;
   speed: number;
+  type: 'normal' | 'bomb'; // normal gifts give points, bomb gifts end the game
 }
 
 export default function GrinchGame2D() {
@@ -655,19 +656,41 @@ export default function GrinchGame2D() {
   const drawGift = useCallback((ctx: CanvasRenderingContext2D, gift: Gift) => {
     ctx.save();
     
-    // Gift box
-    ctx.fillStyle = '#c41e3a';
-    ctx.fillRect(gift.x, gift.y, gift.width, gift.height);
-    
-    // Ribbon
-    ctx.fillStyle = '#FFD700';
-    ctx.fillRect(gift.x, gift.y + gift.height/2 - 2, gift.width, 4);
-    ctx.fillRect(gift.x + gift.width/2 - 2, gift.y, 4, gift.height);
-    
-    // Bow
-    ctx.beginPath();
-    ctx.arc(gift.x + gift.width/2, gift.y - 5, 6, 0, Math.PI * 2);
-    ctx.fill();
+    if (gift.type === 'normal') {
+      // Normal gift - classic Christmas colors
+      ctx.fillStyle = '#c41e3a';
+      ctx.fillRect(gift.x, gift.y, gift.width, gift.height);
+      
+      // Ribbon
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(gift.x, gift.y + gift.height/2 - 2, gift.width, 4);
+      ctx.fillRect(gift.x + gift.width/2 - 2, gift.y, 4, gift.height);
+      
+      // Bow
+      ctx.beginPath();
+      ctx.arc(gift.x + gift.width/2, gift.y - 5, 6, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Bomb gift - dark and dangerous looking
+      ctx.fillStyle = '#2C2C2C'; // Dark gray box
+      ctx.fillRect(gift.x, gift.y, gift.width, gift.height);
+      
+      // Red warning ribbon
+      ctx.fillStyle = '#FF4444';
+      ctx.fillRect(gift.x, gift.y + gift.height/2 - 2, gift.width, 4);
+      ctx.fillRect(gift.x + gift.width/2 - 2, gift.y, 4, gift.height);
+      
+      // Skull symbol or warning sign
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('💣', gift.x + gift.width/2, gift.y + gift.height/2 + 4);
+      
+      // Blinking red warning effect
+      const blinkIntensity = Math.sin(gameTimeRef.current * 8) > 0 ? 0.3 : 0;
+      ctx.fillStyle = `rgba(255, 0, 0, ${blinkIntensity})`;
+      ctx.fillRect(gift.x - 2, gift.y - 2, gift.width + 4, gift.height + 4);
+    }
     
     ctx.restore();
   }, []);
@@ -849,13 +872,18 @@ export default function GrinchGame2D() {
         const baseSpawnRate = Math.max(0.8, 2.5 - difficultyRef.current * 0.3);
         const giftOffsetRange = Math.min(60 + difficultyRef.current * 10, 100); // Widen with difficulty but cap
         
+        // 25% chance for bomb gifts, increasing with difficulty
+        const bombChance = Math.min(0.15 + difficultyRef.current * 0.05, 0.4);
+        const giftType = Math.random() < bombChance ? 'bomb' : 'normal';
+        
         giftsRef.current.push({
           id: Math.random().toString(36).substr(2, 9),
           x: santaRef.current.x + 30 + (Math.random() - 0.5) * giftOffsetRange,
           y: santaRef.current.y + 50,
           width: 25,
           height: 25,
-          speed: 150 + difficultyRef.current * 50
+          speed: 150 + difficultyRef.current * 50,
+          type: giftType
         });
         
         // Schedule next gift with random timing
@@ -873,8 +901,16 @@ export default function GrinchGame2D() {
       const newGifts: Gift[] = [];
       for (const gift of giftsRef.current) {
         if (checkCollision(grinchRef.current, gift)) {
-          scoreRef.current += 1;
-          playSuccess();
+          if (gift.type === 'normal') {
+            // Normal gift - increase score
+            scoreRef.current += 1;
+            playSuccess();
+          } else {
+            // Bomb gift - end the game!
+            playHit();
+            endGame();
+            return; // Stop the game loop immediately
+          }
         } else {
           newGifts.push(gift);
         }
