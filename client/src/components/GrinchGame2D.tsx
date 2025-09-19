@@ -27,6 +27,19 @@ export default function GrinchGame2D() {
   const difficultyRef = useRef(0);
   const gameTimeRef = useRef(0);
   const lastGiftSpawnRef = useRef(0);
+  const nextGiftAtRef = useRef(0);
+  
+  // Santa motion controller for unpredictable movement
+  const santaMotionRef = useRef({
+    dir: 1, // 1 = right, -1 = left
+    vx: 0, // current velocity
+    targetVx: 100, // target velocity
+    segmentT: 0, // current segment time
+    segmentDur: 1.5, // current segment duration
+    nextFlipCooldown: 0,
+    facingLeft: false,
+    flipT: 0
+  });
   
   const {
     gameState,
@@ -51,6 +64,19 @@ export default function GrinchGame2D() {
     difficultyRef.current = 0;
     gameTimeRef.current = 0;
     lastGiftSpawnRef.current = 0;
+    nextGiftAtRef.current = 0;
+    
+    // Reset Santa motion controller
+    santaMotionRef.current = {
+      dir: 1,
+      vx: 0,
+      targetVx: 100,
+      segmentT: 0,
+      segmentDur: 1.5,
+      nextFlipCooldown: 0,
+      facingLeft: false,
+      flipT: 0
+    };
   }, []);
 
   // Keyboard controls
@@ -211,8 +237,16 @@ export default function GrinchGame2D() {
     ctx.restore();
   }, []);
 
-  const drawSanta = useCallback((ctx: CanvasRenderingContext2D, santaObj: GameObject) => {
+  const drawSanta = useCallback((ctx: CanvasRenderingContext2D, santaObj: GameObject, facingLeft: boolean = false) => {
     ctx.save();
+    
+    // Apply mirroring transform if facing left
+    if (facingLeft) {
+      const flipCenterX = santaObj.x + santaObj.width / 2;
+      ctx.translate(flipCenterX, 0);
+      ctx.scale(-1, 1);
+      ctx.translate(-flipCenterX, 0);
+    }
     
     const centerX = santaObj.x + 30;
     const time = gameTimeRef.current;
@@ -627,22 +661,76 @@ export default function GrinchGame2D() {
       newGrinchX = Math.max(0, Math.min(canvas.width - grinchRef.current.width, newGrinchX));
       grinchRef.current.x = newGrinchX;
 
-      // Update Santa position (side to side movement)
-      const santaSpeed = 2 + difficultyRef.current * 0.5;
-      const newSantaX = canvas.width / 2 + Math.sin(gameTimeRef.current * santaSpeed) * 200;
-      santaRef.current.x = newSantaX;
+      // Update Santa motion controller for unpredictable movement
+      const motion = santaMotionRef.current;
+      const canvasWidth = canvas.width;
+      const convoyLeftExtent = motion.facingLeft ? 290 : 15; // Account for full convoy width
+      const convoyRightExtent = motion.facingLeft ? 15 : 290;
+      
+      // Update segment timer
+      motion.segmentT += deltaTime;
+      motion.nextFlipCooldown = Math.max(0, motion.nextFlipCooldown - deltaTime);
+      
+      // Ease velocity towards target
+      const velocityEase = 5; // How fast velocity changes
+      const velocityDiff = motion.targetVx - motion.vx;
+      motion.vx += velocityDiff * velocityEase * deltaTime;
+      
+      // Check if we need to flip direction
+      const nearLeftEdge = santaRef.current.x <= convoyLeftExtent + 20;
+      const nearRightEdge = santaRef.current.x >= canvasWidth - convoyRightExtent - 20;
+      const segmentExpired = motion.segmentT >= motion.segmentDur;
+      const canFlip = motion.nextFlipCooldown <= 0;
+      
+      if ((nearLeftEdge || nearRightEdge || segmentExpired) && canFlip) {
+        // Flip direction
+        motion.dir *= -1;
+        motion.facingLeft = !motion.facingLeft;
+        
+        // Start new segment with random parameters based on difficulty
+        const minDur = Math.max(0.5, 1.5 - difficultyRef.current * 0.1);
+        const maxDur = Math.max(0.8, 2.0 - difficultyRef.current * 0.15);
+        motion.segmentDur = minDur + Math.random() * (maxDur - minDur);
+        
+        const minSpeed = 50 + difficultyRef.current * 20;
+        const maxSpeed = 150 + difficultyRef.current * 30;
+        motion.targetVx = minSpeed + Math.random() * (maxSpeed - minSpeed);
+        
+        motion.segmentT = 0;
+        motion.nextFlipCooldown = 0.5; // Minimum time between flips
+        
+        console.log(`Santa flipped! Dir: ${motion.dir}, Speed: ${motion.targetVx.toFixed(1)}, Duration: ${motion.segmentDur.toFixed(1)}`);
+      }
+      
+      // Apply movement with small jitter
+      const jitter = Math.sin(gameTimeRef.current * 5 + motion.segmentT * 3) * 8;
+      const newSantaX = santaRef.current.x + motion.dir * motion.vx * deltaTime + jitter * deltaTime;
+      
+      // Clamp to screen bounds considering convoy width
+      santaRef.current.x = Math.max(convoyLeftExtent, Math.min(canvasWidth - convoyRightExtent, newSantaX));
 
-      // Spawn gifts
-      const spawnRate = Math.max(0.8, 2.5 - difficultyRef.current * 0.3);
-      if (gameTimeRef.current - lastGiftSpawnRef.current > spawnRate) {
+      // Spawn gifts with unpredictable timing
+      if (nextGiftAtRef.current === 0) {
+        // Initialize first spawn time
+        const baseSpawnRate = Math.max(0.8, 2.5 - difficultyRef.current * 0.3);
+        nextGiftAtRef.current = gameTimeRef.current + baseSpawnRate * (0.6 + Math.random() * 0.8);
+      }
+      
+      if (gameTimeRef.current >= nextGiftAtRef.current) {
+        const baseSpawnRate = Math.max(0.8, 2.5 - difficultyRef.current * 0.3);
+        const giftOffsetRange = Math.min(60 + difficultyRef.current * 10, 100); // Widen with difficulty but cap
+        
         giftsRef.current.push({
           id: Math.random().toString(36).substr(2, 9),
-          x: santaRef.current.x + 30 + (Math.random() - 0.5) * 40,
+          x: santaRef.current.x + 30 + (Math.random() - 0.5) * giftOffsetRange,
           y: santaRef.current.y + 50,
           width: 25,
           height: 25,
           speed: 150 + difficultyRef.current * 50
         });
+        
+        // Schedule next gift with random timing
+        nextGiftAtRef.current = gameTimeRef.current + baseSpawnRate * (0.6 + Math.random() * 0.8);
         lastGiftSpawnRef.current = gameTimeRef.current;
       }
 
@@ -683,7 +771,7 @@ export default function GrinchGame2D() {
 
       // Draw game objects
       drawGrinch(ctx, grinchRef.current);
-      drawSanta(ctx, santaRef.current);
+      drawSanta(ctx, santaRef.current, santaMotionRef.current.facingLeft);
       giftsRef.current.forEach(gift => drawGift(ctx, gift));
       
       // Draw score
