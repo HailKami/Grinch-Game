@@ -379,7 +379,7 @@ export default function GrinchGame2D() {
     
     // Draw reindeer team
     for (let r = 0; r < 4; r++) {
-      const reindeerX = santaObj.x + 80 + r * 30;
+      const reindeerX = santaObj.x + 80 + r * 45;
       const individualBounce = Math.sin(time * 2.8 + r * 0.5) * 2;
       const individualBob = Math.sin(time * 3.2 + r * 0.3) * 1.5;
       const reindeerY = baseReindeerY + individualBounce;
