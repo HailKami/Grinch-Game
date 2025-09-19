@@ -980,11 +980,38 @@ export default function GrinchGame2D() {
         lastGiftSpawnRef.current = gameTimeRef.current;
       }
 
-      // Update gifts
-      giftsRef.current = giftsRef.current.map(gift => ({
-        ...gift,
-        y: gift.y + gift.speed * deltaTime
-      })).filter(gift => gift.y < canvas.height + 50);
+      // Update gifts with special homing behavior for snowballs
+      giftsRef.current = giftsRef.current.map(gift => {
+        if (gift.type === 'snowball') {
+          // Homing snowball - tracks toward Grinch
+          const grinchCenterX = grinchRef.current.x + grinchRef.current.width / 2;
+          const grinchCenterY = grinchRef.current.y + grinchRef.current.height / 2;
+          const snowballCenterX = gift.x + gift.width / 2;
+          const snowballCenterY = gift.y + gift.height / 2;
+          
+          // Calculate direction to Grinch
+          const deltaX = grinchCenterX - snowballCenterX;
+          const deltaY = grinchCenterY - snowballCenterY;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          
+          // Normalize direction and apply homing speed
+          const homingSpeed = gift.speed * 0.8; // Slightly slower than falling speed
+          const normalizedX = distance > 0 ? deltaX / distance : 0;
+          const normalizedY = distance > 0 ? deltaY / distance : 0;
+          
+          return {
+            ...gift,
+            x: gift.x + normalizedX * homingSpeed * deltaTime,
+            y: gift.y + normalizedY * homingSpeed * deltaTime
+          };
+        } else {
+          // Normal gifts and bombs fall straight down
+          return {
+            ...gift,
+            y: gift.y + gift.speed * deltaTime
+          };
+        }
+      }).filter(gift => gift.y < canvas.height + 50 && gift.x > -50 && gift.x < canvas.width + 50);
 
       // Check collisions and remove caught gifts
       const newGifts: Gift[] = [];
