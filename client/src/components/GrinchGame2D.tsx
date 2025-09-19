@@ -999,15 +999,16 @@ export default function GrinchGame2D() {
           const deltaY = grinchCenterY - snowballCenterY;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           
-          // Normalize direction and apply homing speed
-          const homingSpeed = gift.speed * 0.8; // Slightly slower than falling speed
+          // Normalize direction and apply homing speed - much weaker homing
+          const homingSpeed = gift.speed * 0.3; // Much slower homing
+          const fallSpeed = gift.speed * 0.7; // Still falls down primarily
           const normalizedX = distance > 0 ? deltaX / distance : 0;
           const normalizedY = distance > 0 ? deltaY / distance : 0;
           
           return {
             ...gift,
             x: gift.x + normalizedX * homingSpeed * deltaTime,
-            y: gift.y + normalizedY * homingSpeed * deltaTime
+            y: gift.y + fallSpeed * deltaTime + normalizedY * homingSpeed * deltaTime * 0.5
           };
         } else {
           // Normal gifts and bombs fall straight down
