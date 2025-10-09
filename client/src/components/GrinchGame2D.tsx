@@ -34,6 +34,7 @@ export default function GrinchGame2D() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();
   const keysRef = useRef<{ [key: string]: boolean }>({});
+  const touchRef = useRef<{ active: boolean; x: number }>({ active: false, x: 0 });
   
   // Game state stored in refs to avoid re-renders during game loop
   const grinchRef = useRef<GameObject>({ x: 375, y: 520, width: 50, height: 60 });
@@ -168,6 +169,53 @@ export default function GrinchGame2D() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [gameState, restartGame, resetGameState]);
+
+  // Touch controls for mobile
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const touchX = touch.clientX - rect.left;
+      
+      touchRef.current = { active: true, x: touchX };
+      
+      // Restart game on touch if game is over
+      if (gameState === 'gameOver') {
+        resetGameState();
+        restartGame();
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const touchX = touch.clientX - rect.left;
+      
+      touchRef.current = { active: true, x: touchX };
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      touchRef.current = { active: false, x: 0 };
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart);
+    canvas.addEventListener('touchmove', handleTouchMove);
+    canvas.addEventListener('touchend', handleTouchEnd);
+    canvas.addEventListener('touchcancel', handleTouchEnd);
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+      canvas.removeEventListener('touchcancel', handleTouchEnd);
     };
   }, [gameState, restartGame, resetGameState]);
 
@@ -1123,11 +1171,26 @@ export default function GrinchGame2D() {
       if (!grinchFreezeRef.current.isFrozen) {
         const speed = 300; // pixels per second
         
-        if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
-          newGrinchX -= speed * deltaTime;
-        }
-        if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
-          newGrinchX += speed * deltaTime;
+        // Touch controls take priority over keyboard
+        if (touchRef.current.active) {
+          // Move Grinch toward touch position
+          const grinchCenterX = grinchRef.current.x + grinchRef.current.width / 2;
+          const touchX = touchRef.current.x;
+          const distanceToTouch = touchX - grinchCenterX;
+          
+          // Move smoothly toward touch position
+          if (Math.abs(distanceToTouch) > 5) {
+            const direction = distanceToTouch > 0 ? 1 : -1;
+            newGrinchX += direction * speed * deltaTime;
+          }
+        } else {
+          // Keyboard controls
+          if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
+            newGrinchX -= speed * deltaTime;
+          }
+          if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
+            newGrinchX += speed * deltaTime;
+          }
         }
         
         // Keep Grinch on screen
@@ -1454,7 +1517,11 @@ export default function GrinchGame2D() {
         border: '2px solid #333',
         backgroundColor: '#001122',
         display: 'block',
-        margin: '0 auto'
+        margin: '0 auto',
+        touchAction: 'none', // Prevent scrolling on mobile
+        userSelect: 'none', // Prevent text selection on touch
+        WebkitUserSelect: 'none',
+        cursor: 'pointer'
       }}
     />
   );
