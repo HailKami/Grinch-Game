@@ -34,7 +34,7 @@ export default function GrinchGame2D() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();
   const keysRef = useRef<{ [key: string]: boolean }>({});
-  const touchRef = useRef<{ active: boolean; offsetX: number }>({ active: false, offsetX: 0 });
+  const touchRef = useRef<{ active: boolean; direction: -1 | 0 | 1 }>({ active: false, direction: 0 });
   
   // Game state stored in refs to avoid re-renders during game loop
   const grinchRef = useRef<GameObject>({ x: 375, y: 520, width: 50, height: 60 });
@@ -172,7 +172,7 @@ export default function GrinchGame2D() {
     };
   }, [gameState, restartGame, resetGameState]);
 
-  // Touch controls for mobile - drag the Grinch directly
+  // Touch controls for mobile - hold left/right side of screen
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -182,15 +182,13 @@ export default function GrinchGame2D() {
       const touch = e.touches[0];
       const rect = canvas.getBoundingClientRect();
       const touchX = touch.clientX - rect.left;
-      const touchY = touch.clientY - rect.top;
       
-      // Check if touch is on the Grinch
-      const grinch = grinchRef.current;
-      if (touchX >= grinch.x && touchX <= grinch.x + grinch.width &&
-          touchY >= grinch.y && touchY <= grinch.y + grinch.height) {
-        // Calculate offset from touch to Grinch position
-        const offsetX = touchX - grinch.x;
-        touchRef.current = { active: true, offsetX };
+      // Determine direction based on which side of screen is touched
+      const screenMidpoint = canvas.width / 2;
+      if (touchX < screenMidpoint) {
+        touchRef.current = { active: true, direction: -1 }; // Left side = move left
+      } else {
+        touchRef.current = { active: true, direction: 1 }; // Right side = move right
       }
       
       // Restart game on any touch if game is over
@@ -202,21 +200,24 @@ export default function GrinchGame2D() {
 
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      if (!touchRef.current.active || grinchFreezeRef.current.isFrozen) return;
+      if (!touchRef.current.active) return;
       
       const touch = e.touches[0];
       const rect = canvas.getBoundingClientRect();
       const touchX = touch.clientX - rect.left;
       
-      // Update Grinch position based on touch, maintaining offset
-      const newX = touchX - touchRef.current.offsetX;
-      const clampedX = Math.max(0, Math.min(canvas.width - grinchRef.current.width, newX));
-      grinchRef.current.x = clampedX;
+      // Update direction based on current touch position
+      const screenMidpoint = canvas.width / 2;
+      if (touchX < screenMidpoint) {
+        touchRef.current.direction = -1;
+      } else {
+        touchRef.current.direction = 1;
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       e.preventDefault();
-      touchRef.current = { active: false, offsetX: 0 };
+      touchRef.current = { active: false, direction: 0 };
     };
 
     canvas.addEventListener('touchstart', handleTouchStart);
@@ -1178,18 +1179,23 @@ export default function GrinchGame2D() {
         grinchFreezeRef.current.isFrozen = false;
       }
 
-      // Update Grinch position (only if not frozen and not being touched)
+      // Update Grinch position (only if not frozen)
       let newGrinchX = grinchRef.current.x;
       
-      if (!grinchFreezeRef.current.isFrozen && !touchRef.current.active) {
+      if (!grinchFreezeRef.current.isFrozen) {
         const speed = 300; // pixels per second
         
-        // Keyboard controls (only when not touching)
-        if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
-          newGrinchX -= speed * deltaTime;
-        }
-        if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
-          newGrinchX += speed * deltaTime;
+        // Touch controls take priority
+        if (touchRef.current.active && touchRef.current.direction !== 0) {
+          newGrinchX += touchRef.current.direction * speed * deltaTime;
+        } else {
+          // Keyboard controls when not touching
+          if (keysRef.current['KeyA'] || keysRef.current['ArrowLeft']) {
+            newGrinchX -= speed * deltaTime;
+          }
+          if (keysRef.current['KeyD'] || keysRef.current['ArrowRight']) {
+            newGrinchX += speed * deltaTime;
+          }
         }
         
         // Keep Grinch on screen
