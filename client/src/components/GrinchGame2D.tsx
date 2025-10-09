@@ -80,7 +80,7 @@ export default function GrinchGame2D() {
     setScore,
   } = useGrinchGame();
   
-  const { playHit, playSuccess, setBackgroundMusic, setHitSound, setSuccessSound, playBackgroundMusic, stopBackgroundMusic } = useAudio();
+  const { playHit, playSuccess, playSantaLaugh, setBackgroundMusic, setHitSound, setSuccessSound, playBackgroundMusic, stopBackgroundMusic } = useAudio();
 
   // Initialize audio
   useEffect(() => {
@@ -1233,6 +1233,10 @@ export default function GrinchGame2D() {
           type: giftType
         });
         
+        // Santa laughs when dropping bombs (70% chance)
+        if (giftType === 'bomb' && Math.random() < 0.7) {
+          playSantaLaugh();
+        }
         
         // Schedule next gift with random timing
         nextGiftAtRef.current = gameTimeRef.current + baseSpawnRate * (0.6 + Math.random() * 0.8);

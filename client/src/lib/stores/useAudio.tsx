@@ -15,6 +15,7 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playSantaLaugh: () => void;
   playBackgroundMusic: () => void;
   stopBackgroundMusic: () => void;
 }
@@ -88,6 +89,30 @@ export const useAudio = create<AudioState>((set, get) => ({
       soundClone.play().catch(error => {
         console.log("Success sound play prevented:", error);
       });
+    }
+  },
+  
+  playSantaLaugh: () => {
+    const { isMuted } = get();
+    
+    // If sound is muted, don't play anything
+    if (isMuted) {
+      console.log("Santa laugh skipped (muted)");
+      return;
+    }
+    
+    // Use browser's Speech Synthesis API to make Santa say "Ho Ho Ho"
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance("Ho Ho Ho!");
+      utterance.pitch = 0.7; // Lower pitch for a deeper, jollier voice
+      utterance.rate = 0.8; // Slightly slower for emphasis
+      utterance.volume = 0.8; // Nice and loud
+      
+      window.speechSynthesis.speak(utterance);
+      console.log("Santa says: Ho Ho Ho!");
     }
   },
   
