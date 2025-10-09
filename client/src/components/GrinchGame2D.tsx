@@ -184,7 +184,8 @@ export default function GrinchGame2D() {
       const touchX = touch.clientX - rect.left;
       
       // Determine direction based on which side of screen is touched
-      const screenMidpoint = canvas.width / 2;
+      // Use rect.width (screen size) instead of canvas.width (internal resolution)
+      const screenMidpoint = rect.width / 2;
       if (touchX < screenMidpoint) {
         touchRef.current = { active: true, direction: -1 }; // Left side = move left
       } else {
@@ -207,7 +208,8 @@ export default function GrinchGame2D() {
       const touchX = touch.clientX - rect.left;
       
       // Update direction based on current touch position
-      const screenMidpoint = canvas.width / 2;
+      // Use rect.width (screen size) instead of canvas.width (internal resolution)
+      const screenMidpoint = rect.width / 2;
       if (touchX < screenMidpoint) {
         touchRef.current.direction = -1;
       } else {
