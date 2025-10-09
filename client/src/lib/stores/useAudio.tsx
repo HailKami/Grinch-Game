@@ -15,6 +15,8 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playBackgroundMusic: () => void;
+  stopBackgroundMusic: () => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
@@ -28,11 +30,26 @@ export const useAudio = create<AudioState>((set, get) => ({
   setSuccessSound: (sound) => set({ successSound: sound }),
   
   toggleMute: () => {
-    const { isMuted } = get();
+    const { isMuted, backgroundMusic } = get();
     const newMutedState = !isMuted;
     
-    // Just update the muted state
+    // Update the muted state
     set({ isMuted: newMutedState });
+    
+    // Handle background music
+    if (backgroundMusic) {
+      if (newMutedState) {
+        // Muting - pause the music
+        backgroundMusic.pause();
+      } else {
+        // Unmuting - resume the music if it was playing
+        if (backgroundMusic.loop) {
+          backgroundMusic.play().catch(error => {
+            console.log("Background music resume prevented:", error);
+          });
+        }
+      }
+    }
     
     // Log the change
     console.log(`Sound ${newMutedState ? 'muted' : 'unmuted'}`);
@@ -69,6 +86,33 @@ export const useAudio = create<AudioState>((set, get) => ({
       successSound.play().catch(error => {
         console.log("Success sound play prevented:", error);
       });
+    }
+  },
+  
+  playBackgroundMusic: () => {
+    const { backgroundMusic, isMuted } = get();
+    if (backgroundMusic) {
+      // Set up for perfect looping
+      backgroundMusic.loop = true;
+      backgroundMusic.volume = 0.4; // Set comfortable volume
+      
+      // If sound is muted, don't play anything
+      if (isMuted) {
+        console.log("Background music skipped (muted)");
+        return;
+      }
+      
+      backgroundMusic.play().catch(error => {
+        console.log("Background music play prevented:", error);
+      });
+    }
+  },
+  
+  stopBackgroundMusic: () => {
+    const { backgroundMusic } = get();
+    if (backgroundMusic) {
+      backgroundMusic.pause();
+      backgroundMusic.currentTime = 0;
     }
   }
 }));

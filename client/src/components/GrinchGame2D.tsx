@@ -61,7 +61,27 @@ export default function GrinchGame2D() {
     restartGame,
   } = useGrinchGame();
   
-  const { playHit, playSuccess } = useAudio();
+  const { playHit, playSuccess, setBackgroundMusic, setHitSound, setSuccessSound, playBackgroundMusic, stopBackgroundMusic } = useAudio();
+
+  // Initialize audio
+  useEffect(() => {
+    // Create audio elements
+    const bgMusic = new Audio('/sounds/christmas-background.mp3');
+    const hitSnd = new Audio('/sounds/hit.mp3');
+    const successSnd = new Audio('/sounds/success.mp3');
+    
+    // Set them in the store
+    setBackgroundMusic(bgMusic);
+    setHitSound(hitSnd);
+    setSuccessSound(successSnd);
+    
+    // Cleanup on unmount
+    return () => {
+      bgMusic.pause();
+      hitSnd.pause();
+      successSnd.pause();
+    };
+  }, [setBackgroundMusic, setHitSound, setSuccessSound]);
 
   // Initialize game
   useEffect(() => {
@@ -853,7 +873,6 @@ export default function GrinchGame2D() {
       // Check if Grinch freeze has expired
       if (grinchFreezeRef.current.isFrozen && Date.now() >= grinchFreezeRef.current.freezeEndTime) {
         grinchFreezeRef.current.isFrozen = false;
-        console.log("Grinch unfrozen!");
       }
 
       // Update Grinch position (only if not frozen)
@@ -975,10 +994,6 @@ export default function GrinchGame2D() {
           type: giftType
         });
         
-        // Debug logging for gift creation
-        if (giftType === 'snowball') {
-          console.log("❄️ SNOWBALL SPAWNED: Homing missile incoming!");
-        }
         
         // Schedule next gift with random timing
         nextGiftAtRef.current = gameTimeRef.current + baseSpawnRate * (0.6 + Math.random() * 0.8);
@@ -1037,7 +1052,6 @@ export default function GrinchGame2D() {
             grinchFreezeRef.current.isFrozen = true;
             grinchFreezeRef.current.freezeEndTime = Date.now() + 1000; // 1 second from now
             playHit(); // Use hit sound for snowball impact
-            console.log("🧊 SNOWBALL HIT: Grinch frozen for 1 second!");
           }
         } else {
           newGifts.push(gift);
@@ -1047,15 +1061,10 @@ export default function GrinchGame2D() {
 
       // Check for game over (only normal gifts hitting ground ends game)
       const groundThreshold = canvas.height - 60;
-      const giftsNearGround = giftsRef.current.filter(gift => gift.y > groundThreshold);
-      const normalGiftHitGround = giftsNearGround.some(gift => gift.type === 'normal');
-      
-      // Debug logging to catch the bug
-      if (giftsNearGround.length > 0) {
-        console.log("Gifts near ground:", giftsNearGround.map(g => `${g.type} at y=${Math.round(g.y)}`));
-      }
+      const normalGiftHitGround = giftsRef.current.some(gift => 
+        gift.type === 'normal' && gift.y > groundThreshold
+      );
       if (normalGiftHitGround) {
-        console.log("GAME OVER: Normal gift hit ground!");
         endGame();
         playHit();
         return;
@@ -1104,6 +1113,15 @@ export default function GrinchGame2D() {
       resetGameState();
     }
   }, [gameState, resetGameState]);
+
+  // Control background music based on game state
+  useEffect(() => {
+    if (gameState === 'playing') {
+      playBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
+    }
+  }, [gameState, playBackgroundMusic, stopBackgroundMusic]);
 
   return (
     <canvas
