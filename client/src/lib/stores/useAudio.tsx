@@ -4,12 +4,14 @@ interface AudioState {
   backgroundMusic: HTMLAudioElement | null;
   hitSound: HTMLAudioElement | null;
   successSound: HTMLAudioElement | null;
+  santaLaughSound: HTMLAudioElement | null;
   isMuted: boolean;
   
   // Setter functions
   setBackgroundMusic: (music: HTMLAudioElement) => void;
   setHitSound: (sound: HTMLAudioElement) => void;
   setSuccessSound: (sound: HTMLAudioElement) => void;
+  setSantaLaughSound: (sound: HTMLAudioElement) => void;
   
   // Control functions
   toggleMute: () => void;
@@ -24,11 +26,13 @@ export const useAudio = create<AudioState>((set, get) => ({
   backgroundMusic: null,
   hitSound: null,
   successSound: null,
+  santaLaughSound: null,
   isMuted: false, // Start unmuted so music plays automatically
   
   setBackgroundMusic: (music) => set({ backgroundMusic: music }),
   setHitSound: (sound) => set({ hitSound: sound }),
   setSuccessSound: (sound) => set({ successSound: sound }),
+  setSantaLaughSound: (sound) => set({ santaLaughSound: sound }),
   
   toggleMute: () => {
     const { isMuted, backgroundMusic } = get();
@@ -93,7 +97,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   },
   
   playSantaLaugh: () => {
-    const { isMuted } = get();
+    const { santaLaughSound, isMuted } = get();
     
     // If sound is muted, don't play anything
     if (isMuted) {
@@ -101,18 +105,13 @@ export const useAudio = create<AudioState>((set, get) => ({
       return;
     }
     
-    // Use browser's Speech Synthesis API to make Santa say "Ho Ho Ho"
-    if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance("Ho Ho Ho!");
-      utterance.pitch = 0.7; // Lower pitch for a deeper, jollier voice
-      utterance.rate = 0.8; // Slightly slower for emphasis
-      utterance.volume = 0.8; // Nice and loud
-      
-      window.speechSynthesis.speak(utterance);
-      console.log("Santa says: Ho Ho Ho!");
+    if (santaLaughSound) {
+      // Clone the sound to allow overlapping playback
+      const soundClone = santaLaughSound.cloneNode() as HTMLAudioElement;
+      soundClone.volume = 0.7; // Nice volume for Santa's laugh
+      soundClone.play().catch(error => {
+        console.log("Santa laugh play prevented:", error);
+      });
     }
   },
   

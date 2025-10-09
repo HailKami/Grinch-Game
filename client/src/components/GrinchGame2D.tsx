@@ -80,7 +80,7 @@ export default function GrinchGame2D() {
     setScore,
   } = useGrinchGame();
   
-  const { playHit, playSuccess, playSantaLaugh, setBackgroundMusic, setHitSound, setSuccessSound, playBackgroundMusic, stopBackgroundMusic } = useAudio();
+  const { playHit, playSuccess, playSantaLaugh, setBackgroundMusic, setHitSound, setSuccessSound, setSantaLaughSound, playBackgroundMusic, stopBackgroundMusic } = useAudio();
 
   // Initialize audio
   useEffect(() => {
@@ -88,19 +88,22 @@ export default function GrinchGame2D() {
     const bgMusic = new Audio('/sounds/christmas-background.mp3');
     const hitSnd = new Audio('/sounds/hit.mp3');
     const successSnd = new Audio('/sounds/success.mp3');
+    const santaLaugh = new Audio('/sounds/santa-laugh.mp3');
     
     // Set them in the store
     setBackgroundMusic(bgMusic);
     setHitSound(hitSnd);
     setSuccessSound(successSnd);
+    setSantaLaughSound(santaLaugh);
     
     // Cleanup on unmount
     return () => {
       bgMusic.pause();
       hitSnd.pause();
       successSnd.pause();
+      santaLaugh.pause();
     };
-  }, [setBackgroundMusic, setHitSound, setSuccessSound]);
+  }, [setBackgroundMusic, setHitSound, setSuccessSound, setSantaLaughSound]);
 
   // Initialize game
   useEffect(() => {
