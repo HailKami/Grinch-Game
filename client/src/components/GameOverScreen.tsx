@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { useGrinchGame } from "../lib/stores/useGrinchGame";
+import Leaderboard from "./Leaderboard";
 
 export default function GameOverScreen() {
   const { gameState, username, score, restartGame } = useGrinchGame();
   const [scoreSaved, setScoreSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const isActiveRef = useRef(true);
 
   // Save score to database when game ends
@@ -119,30 +121,57 @@ export default function GameOverScreen() {
         Santa's gifts reached the ground...
       </p>
       
-      <button
-        onClick={restartGame}
-        style={{
-          fontSize: '20px',
-          padding: '15px 30px',
-          backgroundColor: '#4a7c59',
-          color: 'white',
-          border: 'none',
-          borderRadius: '10px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          transition: 'all 0.3s ease'
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.backgroundColor = '#5a8c69';
-          e.currentTarget.style.transform = 'scale(1.05)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.backgroundColor = '#4a7c59';
-          e.currentTarget.style.transform = 'scale(1)';
-        }}
-      >
-        🎮 Play Again (Press R or Space)
-      </button>
+      <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+        <button
+          onClick={restartGame}
+          style={{
+            fontSize: '20px',
+            padding: '15px 30px',
+            backgroundColor: '#4a7c59',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = '#5a8c69';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = '#4a7c59';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          🎮 Play Again (Press R or Space)
+        </button>
+
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          style={{
+            fontSize: '18px',
+            padding: '12px 24px',
+            backgroundColor: '#c9a227',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = '#d9b237';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = '#c9a227';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          🏆 View Leaderboard
+        </button>
+      </div>
       
       <div style={{
         marginTop: '20px',
@@ -151,6 +180,10 @@ export default function GameOverScreen() {
       }}>
         Use A/D or Arrow Keys to move the Grinch
       </div>
+
+      {showLeaderboard && (
+        <Leaderboard onClose={() => setShowLeaderboard(false)} />
+      )}
     </div>
   );
 }
