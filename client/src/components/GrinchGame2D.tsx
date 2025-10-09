@@ -59,6 +59,7 @@ export default function GrinchGame2D() {
     startGame,
     endGame,
     restartGame,
+    setScore,
   } = useGrinchGame();
   
   const { playHit, playSuccess, setBackgroundMusic, setHitSound, setSuccessSound, playBackgroundMusic, stopBackgroundMusic } = useAudio();
@@ -1075,6 +1076,7 @@ export default function GrinchGame2D() {
           } else if (gift.type === 'bomb') {
             // Bomb gift - end the game!
             playHit();
+            setScore(scoreRef.current); // Save score to global store
             endGame();
             return; // Stop the game loop immediately
           } else if (gift.type === 'snowball') {
@@ -1095,6 +1097,7 @@ export default function GrinchGame2D() {
         gift.type === 'normal' && gift.y > groundThreshold
       );
       if (normalGiftHitGround) {
+        setScore(scoreRef.current); // Save score to global store
         endGame();
         playHit();
         return;

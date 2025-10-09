@@ -31,6 +31,7 @@ interface GrinchGameState {
   updateGifts: (gifts: Gift[]) => void;
   catchGift: (giftId: string) => void;
   increaseDifficulty: () => void;
+  setScore: (score: number) => void;
 }
 
 export const useGrinchGame = create<GrinchGameState>((set, get) => ({
@@ -100,5 +101,9 @@ export const useGrinchGame = create<GrinchGameState>((set, get) => ({
     set(state => ({
       difficulty: state.difficulty + 1
     }));
+  },
+  
+  setScore: (score: number) => {
+    set({ score });
   }
 }));
