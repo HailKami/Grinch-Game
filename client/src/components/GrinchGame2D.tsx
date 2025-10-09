@@ -1097,54 +1097,38 @@ export default function GrinchGame2D() {
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Festive winter sky gradient
+      // Draw winter wonderland gradient sky
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#0f1b3d'); // Deep night blue
-      gradient.addColorStop(0.4, '#1a3a5c'); // Medium blue
-      gradient.addColorStop(0.7, '#2d5a7b'); // Lighter blue
-      gradient.addColorStop(1, '#4a7a9a'); // Horizon blue
+      gradient.addColorStop(0, '#1a2a4a'); // Deep blue at top
+      gradient.addColorStop(0.5, '#2d4a70'); // Medium blue
+      gradient.addColorStop(1, '#4a6b99'); // Lighter blue near horizon
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Add festive stars twinkling in the sky
-      ctx.fillStyle = '#FFFFFF';
-      const stars = [
-        { x: 50, y: 30, size: 2 },
-        { x: 120, y: 60, size: 3 },
-        { x: 200, y: 40, size: 2 },
-        { x: 300, y: 80, size: 2.5 },
-        { x: 380, y: 50, size: 2 },
-        { x: 450, y: 70, size: 3 },
-        { x: 550, y: 45, size: 2 },
-        { x: 620, y: 85, size: 2.5 },
-        { x: 700, y: 55, size: 2 },
-        { x: 100, y: 100, size: 2 },
-        { x: 250, y: 120, size: 2.5 },
-        { x: 500, y: 110, size: 2 },
-        { x: 650, y: 130, size: 2 }
-      ];
+      // Draw distant snowy mountains
+      ctx.fillStyle = '#6b8bb5';
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height - 200);
+      ctx.quadraticCurveTo(200, canvas.height - 280, 400, canvas.height - 200);
+      ctx.quadraticCurveTo(600, canvas.height - 320, 800, canvas.height - 200);
+      ctx.lineTo(canvas.width, canvas.height - 200);
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(0, canvas.height);
+      ctx.closePath();
+      ctx.fill();
       
-      stars.forEach(star => {
-        const twinkle = Math.sin(gameTimeRef.current * 3 + star.x) * 0.3 + 0.7;
-        ctx.globalAlpha = twinkle;
-        ctx.shadowColor = '#FFFFFF';
-        ctx.shadowBlur = 8;
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Star sparkle lines
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(star.x - star.size * 2, star.y);
-        ctx.lineTo(star.x + star.size * 2, star.y);
-        ctx.moveTo(star.x, star.y - star.size * 2);
-        ctx.lineTo(star.x, star.y + star.size * 2);
-        ctx.stroke();
-      });
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
+      // Draw snow caps on mountains
+      ctx.fillStyle = '#e8f4f8';
+      ctx.beginPath();
+      ctx.moveTo(180, canvas.height - 265);
+      ctx.quadraticCurveTo(200, canvas.height - 280, 220, canvas.height - 265);
+      ctx.lineTo(180, canvas.height - 265);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(580, canvas.height - 305);
+      ctx.quadraticCurveTo(600, canvas.height - 320, 620, canvas.height - 305);
+      ctx.lineTo(580, canvas.height - 305);
+      ctx.fill();
       
       // Draw subtle falling snow animation
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
