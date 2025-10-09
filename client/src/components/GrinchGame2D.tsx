@@ -15,6 +15,21 @@ interface Gift extends GameObject {
   type: 'normal' | 'bomb' | 'snowball'; // normal gifts give points, bomb gifts end the game, snowballs freeze the Grinch
 }
 
+interface Particle {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number; // 0 to 1, decreases over time
+  maxLife: number;
+  size: number;
+  color: string;
+  type: 'sparkle' | 'star' | 'confetti' | 'explosion' | 'ice' | 'snowflake';
+  rotation?: number;
+  rotationSpeed?: number;
+}
+
 export default function GrinchGame2D() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();
@@ -53,6 +68,9 @@ export default function GrinchGame2D() {
     isFrozen: false,
     freezeEndTime: 0
   });
+  
+  // Particle system
+  const particlesRef = useRef<Particle[]>([]);
   
   const {
     gameState,
@@ -123,6 +141,9 @@ export default function GrinchGame2D() {
       isFrozen: false,
       freezeEndTime: 0
     };
+    
+    // Clear particles
+    particlesRef.current = [];
   }, []);
 
   // Keyboard controls
@@ -146,6 +167,104 @@ export default function GrinchGame2D() {
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [gameState, restartGame, resetGameState]);
+
+  // Particle helper functions
+  const createParticles = useCallback((x: number, y: number, type: 'gift' | 'bomb' | 'freeze' | 'snowball') => {
+    // Soft cap to prevent performance issues - limit to 500 active particles
+    if (particlesRef.current.length > 500) {
+      return;
+    }
+    
+    const newParticles: Particle[] = [];
+    
+    if (type === 'gift') {
+      // Sparkly confetti explosion for caught gifts
+      for (let i = 0; i < 20; i++) {
+        const baseAngle = (Math.PI * 2 * i) / 20;
+        const jitter = (Math.random() - 0.5) * 0.3; // Add random angle jitter
+        const angle = baseAngle + jitter;
+        const speed = 100 + Math.random() * 100;
+        newParticles.push({
+          id: `${Date.now()}-${i}`,
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 50,
+          life: 1,
+          maxLife: 0.8 + Math.random() * 0.4,
+          size: 3 + Math.random() * 4,
+          color: ['#FFD700', '#FF69B4', '#00FF00', '#FF0000', '#FFFFFF'][Math.floor(Math.random() * 5)],
+          type: i % 2 === 0 ? 'star' : 'confetti',
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 10
+        });
+      }
+    } else if (type === 'bomb') {
+      // Explosive particles for bomb
+      for (let i = 0; i < 30; i++) {
+        const baseAngle = (Math.PI * 2 * i) / 30;
+        const jitter = (Math.random() - 0.5) * 0.4; // Add random angle jitter
+        const angle = baseAngle + jitter;
+        const speed = 150 + Math.random() * 150;
+        newParticles.push({
+          id: `${Date.now()}-${i}`,
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          maxLife: 0.6 + Math.random() * 0.3,
+          size: 4 + Math.random() * 6,
+          color: ['#FF4500', '#FF6347', '#FF8C00', '#FFA500', '#222222'][Math.floor(Math.random() * 5)],
+          type: 'explosion',
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 15
+        });
+      }
+    } else if (type === 'freeze') {
+      // Ice crystal particles for freeze effect
+      for (let i = 0; i < 15; i++) {
+        const baseAngle = (Math.PI * 2 * i) / 15;
+        const jitter = (Math.random() - 0.5) * 0.3; // Add random angle jitter
+        const angle = baseAngle + jitter;
+        const speed = 50 + Math.random() * 80;
+        newParticles.push({
+          id: `${Date.now()}-${i}`,
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 30,
+          life: 1,
+          maxLife: 1.0 + Math.random() * 0.5,
+          size: 3 + Math.random() * 3,
+          color: ['#87CEEB', '#B0E0E6', '#E0FFFF', '#FFFFFF'][Math.floor(Math.random() * 4)],
+          type: 'ice',
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 8
+        });
+      }
+    } else if (type === 'snowball') {
+      // Snowflake trail for snowballs
+      for (let i = 0; i < 3; i++) {
+        newParticles.push({
+          id: `${Date.now()}-${i}`,
+          x: x + (Math.random() - 0.5) * 10,
+          y: y + (Math.random() - 0.5) * 10,
+          vx: (Math.random() - 0.5) * 20,
+          vy: (Math.random() - 0.5) * 20,
+          life: 1,
+          maxLife: 0.5 + Math.random() * 0.3,
+          size: 2 + Math.random() * 2,
+          color: '#FFFFFF',
+          type: 'snowflake',
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 5
+        });
+      }
+    }
+    
+    particlesRef.current.push(...newParticles);
+  }, []);
 
   // Draw functions
   const drawGrinch = useCallback((ctx: CanvasRenderingContext2D, grinchObj: GameObject) => {
@@ -716,6 +835,95 @@ export default function GrinchGame2D() {
     ctx.restore();
   }, []);
 
+  const drawParticles = useCallback((ctx: CanvasRenderingContext2D) => {
+    particlesRef.current.forEach(particle => {
+      ctx.save();
+      
+      const alpha = particle.life;
+      ctx.globalAlpha = alpha;
+      
+      if (particle.type === 'star') {
+        // Draw a star shape
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation || 0);
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+          const x = Math.cos(angle) * particle.size;
+          const y = Math.sin(angle) * particle.size;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          const innerAngle = angle + Math.PI / 5;
+          ctx.lineTo(Math.cos(innerAngle) * particle.size * 0.4, Math.sin(innerAngle) * particle.size * 0.4);
+        }
+        ctx.closePath();
+        ctx.fill();
+      } else if (particle.type === 'confetti') {
+        // Draw a rectangle for confetti
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation || 0);
+        ctx.fillStyle = particle.color;
+        ctx.fillRect(-particle.size / 2, -particle.size, particle.size, particle.size * 2);
+      } else if (particle.type === 'explosion') {
+        // Draw an explosion particle (circle with glow)
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add glow effect
+        const gradient = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, particle.size * 2);
+        gradient.addColorStop(0, `${particle.color}88`);
+        gradient.addColorStop(1, `${particle.color}00`);
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (particle.type === 'ice') {
+        // Draw ice crystal
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation || 0);
+        ctx.strokeStyle = particle.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Draw a snowflake pattern
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI) / 3;
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(angle) * particle.size, Math.sin(angle) * particle.size);
+        }
+        ctx.stroke();
+      } else if (particle.type === 'snowflake') {
+        // Draw small snowflake
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation || 0);
+        ctx.fillStyle = particle.color;
+        ctx.strokeStyle = particle.color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, particle.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        // Add arms
+        for (let i = 0; i < 4; i++) {
+          const angle = (i * Math.PI) / 2;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(angle) * particle.size, Math.sin(angle) * particle.size);
+          ctx.stroke();
+        }
+      } else {
+        // Default: sparkle (circle)
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.restore();
+    });
+  }, []);
+
   const drawGift = useCallback((ctx: CanvasRenderingContext2D, gift: Gift) => {
     ctx.save();
     
@@ -1034,6 +1242,9 @@ export default function GrinchGame2D() {
       // Update gifts with special homing behavior for snowballs
       giftsRef.current = giftsRef.current.map(gift => {
         if (gift.type === 'snowball') {
+          // Create snowflake trail particles
+          createParticles(gift.x + gift.width / 2, gift.y + gift.height / 2, 'snowball');
+          
           // Homing snowball - tracks toward Grinch
           const grinchCenterX = grinchRef.current.x + grinchRef.current.width / 2;
           const grinchCenterY = grinchRef.current.y + grinchRef.current.height / 2;
@@ -1073,9 +1284,13 @@ export default function GrinchGame2D() {
             // Normal gift - increase score
             scoreRef.current += 1;
             playSuccess();
+            // Create sparkly particles for caught gift
+            createParticles(gift.x + gift.width / 2, gift.y + gift.height / 2, 'gift');
           } else if (gift.type === 'bomb') {
             // Bomb gift - end the game!
             playHit();
+            // Create explosion particles
+            createParticles(gift.x + gift.width / 2, gift.y + gift.height / 2, 'bomb');
             setScore(scoreRef.current); // Save score to global store
             endGame();
             return; // Stop the game loop immediately
@@ -1084,6 +1299,8 @@ export default function GrinchGame2D() {
             grinchFreezeRef.current.isFrozen = true;
             grinchFreezeRef.current.freezeEndTime = Date.now() + 1000; // 1 second from now
             playHit(); // Use hit sound for snowball impact
+            // Create freeze particles
+            createParticles(gift.x + gift.width / 2, gift.y + gift.height / 2, 'freeze');
           }
         } else {
           newGifts.push(gift);
@@ -1112,10 +1329,75 @@ export default function GrinchGame2D() {
       // Update game time
       gameTimeRef.current += deltaTime;
 
+      // Update particles
+      particlesRef.current = particlesRef.current.map(particle => {
+        // Update particle position
+        const newX = particle.x + particle.vx * deltaTime;
+        const newY = particle.y + particle.vy * deltaTime;
+        
+        // Apply gravity to particles (except ice which floats up)
+        const gravity = particle.type === 'ice' ? -100 : 200;
+        const newVy = particle.vy + gravity * deltaTime;
+        
+        // Update rotation
+        const newRotation = (particle.rotation || 0) + (particle.rotationSpeed || 0) * deltaTime;
+        
+        // Decrease life
+        const newLife = particle.life - (deltaTime / particle.maxLife);
+        
+        return {
+          ...particle,
+          x: newX,
+          y: newY,
+          vy: newVy,
+          rotation: newRotation,
+          life: Math.max(0, newLife)
+        };
+      }).filter(particle => particle.life > 0); // Remove dead particles
+
       // Draw game objects
       drawGrinch(ctx, grinchRef.current);
       drawSanta(ctx, santaRef.current, santaMotionRef.current.facingLeft);
       giftsRef.current.forEach(gift => drawGift(ctx, gift));
+      
+      // Draw particles on top of gifts
+      drawParticles(ctx);
+      
+      // Draw freeze effect overlay on Grinch
+      if (grinchFreezeRef.current.isFrozen) {
+        const grinchCenterX = grinchRef.current.x + grinchRef.current.width / 2;
+        const grinchCenterY = grinchRef.current.y + grinchRef.current.height / 2;
+        
+        // Ice overlay
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#87CEEB';
+        ctx.beginPath();
+        ctx.ellipse(grinchCenterX, grinchCenterY, grinchRef.current.width / 2 + 5, grinchRef.current.height / 2 + 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        
+        // Ice crystal overlays
+        const frozenTime = (Date.now() % 500) / 500;
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI * 2) / 6 + frozenTime * Math.PI * 2;
+          const x = grinchCenterX + Math.cos(angle) * 30;
+          const y = grinchCenterY + Math.sin(angle) * 30;
+          
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(angle);
+          ctx.strokeStyle = '#B0E0E6';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(0, -5);
+          ctx.lineTo(0, 5);
+          ctx.moveTo(-5, 0);
+          ctx.lineTo(5, 0);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
       
       // Draw score
       ctx.fillStyle = 'white';
