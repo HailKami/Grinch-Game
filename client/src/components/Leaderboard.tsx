@@ -37,7 +37,7 @@ export default function Leaderboard({ onClose }: LeaderboardProps) {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[300]">
       <div className="bg-gradient-to-b from-green-700 to-red-700 p-8 rounded-lg shadow-2xl max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-white">
