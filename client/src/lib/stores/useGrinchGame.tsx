@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type GameState = "menu" | "playing" | "gameOver";
+export type GameState = "usernameInput" | "playing" | "gameOver";
 
 interface Gift {
   id: string;
@@ -15,6 +15,7 @@ interface Position {
 
 interface GrinchGameState {
   gameState: GameState;
+  username: string;
   score: number;
   gifts: Gift[];
   grinchPosition: Position;
@@ -22,6 +23,7 @@ interface GrinchGameState {
   difficulty: number;
   
   // Actions
+  setUsername: (username: string) => void;
   startGame: () => void;
   endGame: () => void;
   restartGame: () => void;
@@ -35,12 +37,17 @@ interface GrinchGameState {
 }
 
 export const useGrinchGame = create<GrinchGameState>((set, get) => ({
-  gameState: "menu",
+  gameState: "usernameInput",
+  username: "",
   score: 0,
   gifts: [],
   grinchPosition: { x: 0, y: -4 },
   santaPosition: { x: 0, y: 4 },
   difficulty: 0,
+  
+  setUsername: (username: string) => {
+    set({ username });
+  },
   
   startGame: () => {
     set({
