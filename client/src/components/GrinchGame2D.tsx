@@ -1097,38 +1097,135 @@ export default function GrinchGame2D() {
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Draw winter wonderland gradient sky
+      // Draw winter wonderland gradient sky with Whoville atmosphere
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
       gradient.addColorStop(0, '#1a2a4a'); // Deep blue at top
       gradient.addColorStop(0.5, '#2d4a70'); // Medium blue
-      gradient.addColorStop(1, '#4a6b99'); // Lighter blue near horizon
+      gradient.addColorStop(1, '#5a7aa5'); // Lighter blue near horizon
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Draw distant snowy mountains
-      ctx.fillStyle = '#6b8bb5';
-      ctx.beginPath();
-      ctx.moveTo(0, canvas.height - 200);
-      ctx.quadraticCurveTo(200, canvas.height - 280, 400, canvas.height - 200);
-      ctx.quadraticCurveTo(600, canvas.height - 320, 800, canvas.height - 200);
-      ctx.lineTo(canvas.width, canvas.height - 200);
-      ctx.lineTo(canvas.width, canvas.height);
-      ctx.lineTo(0, canvas.height);
-      ctx.closePath();
-      ctx.fill();
+      // Draw Whoville buildings in the background
+      const buildings = [
+        { x: 50, baseY: canvas.height - 100, width: 60, height: 140, color: '#c41e3a', roofColor: '#8B0000', curveDir: 1 },
+        { x: 140, baseY: canvas.height - 90, width: 50, height: 120, color: '#228b22', roofColor: '#006400', curveDir: -1 },
+        { x: 220, baseY: canvas.height - 120, width: 70, height: 160, color: '#FFD700', roofColor: '#DAA520', curveDir: 1 },
+        { x: 320, baseY: canvas.height - 95, width: 55, height: 130, color: '#4169E1', roofColor: '#191970', curveDir: -1 },
+        { x: 400, baseY: canvas.height - 110, width: 65, height: 150, color: '#FF69B4', roofColor: '#C71585', curveDir: 1 },
+        { x: 490, baseY: canvas.height - 85, width: 45, height: 110, color: '#FFA500', roofColor: '#FF8C00', curveDir: -1 },
+        { x: 560, baseY: canvas.height - 105, width: 60, height: 145, color: '#9370DB', roofColor: '#663399', curveDir: 1 },
+        { x: 650, baseY: canvas.height - 90, width: 50, height: 125, color: '#20B2AA', roofColor: '#008B8B', curveDir: -1 },
+        { x: 720, baseY: canvas.height - 115, width: 55, height: 155, color: '#FF6347', roofColor: '#DC143C', curveDir: 1 }
+      ];
       
-      // Draw snow caps on mountains
-      ctx.fillStyle = '#e8f4f8';
-      ctx.beginPath();
-      ctx.moveTo(180, canvas.height - 265);
-      ctx.quadraticCurveTo(200, canvas.height - 280, 220, canvas.height - 265);
-      ctx.lineTo(180, canvas.height - 265);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(580, canvas.height - 305);
-      ctx.quadraticCurveTo(600, canvas.height - 320, 620, canvas.height - 305);
-      ctx.lineTo(580, canvas.height - 305);
-      ctx.fill();
+      buildings.forEach(building => {
+        // Draw curved, whimsical building body
+        ctx.fillStyle = building.color;
+        ctx.beginPath();
+        ctx.moveTo(building.x, building.baseY);
+        
+        // Create curved sides for Whoville style
+        const controlPoint1X = building.x + building.width * 0.2;
+        const controlPoint1Y = building.baseY - building.height * 0.7;
+        const controlPoint2X = building.x + building.width * 0.8;
+        const controlPoint2Y = building.baseY - building.height * 0.7;
+        
+        ctx.quadraticCurveTo(
+          building.x + building.curveDir * 10,
+          building.baseY - building.height / 2,
+          building.x + building.width / 2,
+          building.baseY - building.height
+        );
+        ctx.quadraticCurveTo(
+          building.x + building.width - building.curveDir * 10,
+          building.baseY - building.height / 2,
+          building.x + building.width,
+          building.baseY
+        );
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw crooked roof with swoop
+        ctx.fillStyle = building.roofColor;
+        ctx.beginPath();
+        ctx.moveTo(building.x - 5, building.baseY - building.height);
+        ctx.quadraticCurveTo(
+          building.x + building.width / 2 + building.curveDir * 15,
+          building.baseY - building.height - 25,
+          building.x + building.width + 5,
+          building.baseY - building.height
+        );
+        ctx.lineTo(building.x + building.width, building.baseY - building.height + 15);
+        ctx.lineTo(building.x, building.baseY - building.height + 15);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw windows
+        ctx.fillStyle = '#FFFF99';
+        const windowY1 = building.baseY - building.height * 0.7;
+        const windowY2 = building.baseY - building.height * 0.4;
+        
+        ctx.fillRect(building.x + building.width * 0.3, windowY1, 12, 12);
+        ctx.fillRect(building.x + building.width * 0.6, windowY1, 12, 12);
+        ctx.fillRect(building.x + building.width * 0.3, windowY2, 12, 12);
+        ctx.fillRect(building.x + building.width * 0.6, windowY2, 12, 12);
+        
+        // Draw door
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(building.x + building.width * 0.4, building.baseY - 20, 14, 20);
+        
+        // Add snow on roof
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(building.x - 5, building.baseY - building.height);
+        ctx.quadraticCurveTo(
+          building.x + building.width / 2 + building.curveDir * 15,
+          building.baseY - building.height - 25,
+          building.x + building.width + 5,
+          building.baseY - building.height
+        );
+        ctx.quadraticCurveTo(
+          building.x + building.width / 2 + building.curveDir * 12,
+          building.baseY - building.height - 20,
+          building.x - 5,
+          building.baseY - building.height
+        );
+        ctx.closePath();
+        ctx.fill();
+      });
+      
+      // Add candy cane lamp posts
+      const lampPosts = [
+        { x: 110, y: canvas.height - 50 },
+        { x: 295, y: canvas.height - 50 },
+        { x: 475, y: canvas.height - 50 },
+        { x: 630, y: canvas.height - 50 }
+      ];
+      
+      lampPosts.forEach(post => {
+        // Candy cane striped pole
+        const stripeCount = 8;
+        const poleHeight = 60;
+        const stripeHeight = poleHeight / stripeCount;
+        
+        for (let i = 0; i < stripeCount; i++) {
+          ctx.fillStyle = i % 2 === 0 ? '#FFFFFF' : '#FF0000';
+          ctx.fillRect(post.x - 2, post.y - (i + 1) * stripeHeight, 4, stripeHeight);
+        }
+        
+        // Glowing lamp
+        ctx.fillStyle = '#FFD700';
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(post.x, post.y - poleHeight - 8, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // Lamp holder
+        ctx.fillStyle = '#8B0000';
+        ctx.fillRect(post.x - 3, post.y - poleHeight - 2, 6, 4);
+      });
       
       // Draw subtle falling snow animation
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
