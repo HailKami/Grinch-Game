@@ -27,6 +27,7 @@ interface GrinchGameState {
   startGame: () => void;
   endGame: () => void;
   restartGame: () => void;
+  changeUsername: () => void;
   updateGrinch: (x: number, y: number) => void;
   updateSanta: (x: number, y: number) => void;
   spawnGift: (x: number, y: number) => void;
@@ -67,6 +68,10 @@ export const useGrinchGame = create<GrinchGameState>((set, get) => ({
   restartGame: () => {
     const { startGame } = get();
     startGame();
+  },
+  
+  changeUsername: () => {
+    set({ gameState: "usernameInput", username: "" });
   },
   
   updateGrinch: (x: number, y: number) => {

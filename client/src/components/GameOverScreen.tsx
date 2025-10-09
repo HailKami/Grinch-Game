@@ -3,7 +3,7 @@ import { useGrinchGame } from "../lib/stores/useGrinchGame";
 import Leaderboard from "./Leaderboard";
 
 export default function GameOverScreen() {
-  const { gameState, username, score, restartGame } = useGrinchGame();
+  const { gameState, username, score, restartGame, changeUsername } = useGrinchGame();
   const [scoreSaved, setScoreSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -170,6 +170,31 @@ export default function GameOverScreen() {
           }}
         >
           🏆 View Leaderboard
+        </button>
+
+        <button
+          onClick={changeUsername}
+          style={{
+            fontSize: '16px',
+            padding: '10px 20px',
+            backgroundColor: '#6b7280',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = '#7b8290';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = '#6b7280';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          ✏️ Change Name
         </button>
       </div>
       
