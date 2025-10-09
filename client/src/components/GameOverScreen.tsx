@@ -1,7 +1,58 @@
+import { useEffect, useState, useRef } from "react";
 import { useGrinchGame } from "../lib/stores/useGrinchGame";
 
 export default function GameOverScreen() {
-  const { gameState, score, restartGame } = useGrinchGame();
+  const { gameState, username, score, restartGame } = useGrinchGame();
+  const [scoreSaved, setScoreSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const isActiveRef = useRef(true);
+
+  // Save score to database when game ends
+  useEffect(() => {
+    // Reset states and mark as active when entering game over
+    if (gameState === 'gameOver') {
+      isActiveRef.current = true;
+      setScoreSaved(false);
+      setSaveError(false);
+      
+      if (username && score > 0) {
+        const saveScore = async () => {
+          try {
+            const response = await fetch('/api/leaderboard', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                username,
+                score,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to save score');
+            }
+
+            // Only update state if still in game over (not restarted)
+            if (isActiveRef.current) {
+              setScoreSaved(true);
+            }
+          } catch (error) {
+            console.error('Error saving score:', error);
+            // Only update state if still in game over (not restarted)
+            if (isActiveRef.current) {
+              setSaveError(true);
+            }
+          }
+        };
+
+        saveScore();
+      }
+    } else {
+      // Mark as inactive when leaving game over state
+      isActiveRef.current = false;
+    }
+  }, [gameState, username, score]);
 
   // Only show when game is over
   if (gameState !== 'gameOver') {
@@ -37,8 +88,28 @@ export default function GameOverScreen() {
         fontSize: '24px',
         marginBottom: '10px'
       }}>
-        The Grinch caught {score} gifts!
+        {username} caught {score} gifts!
       </p>
+      
+      {scoreSaved && (
+        <p style={{
+          fontSize: '16px',
+          marginBottom: '10px',
+          color: '#4ade80'
+        }}>
+          ✓ Score saved to leaderboard!
+        </p>
+      )}
+      
+      {saveError && (
+        <p style={{
+          fontSize: '16px',
+          marginBottom: '10px',
+          color: '#f87171'
+        }}>
+          ✗ Failed to save score
+        </p>
+      )}
       
       <p style={{
         fontSize: '18px',
