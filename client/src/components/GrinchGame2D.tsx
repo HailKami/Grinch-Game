@@ -821,54 +821,84 @@ export default function GrinchGame2D() {
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Draw background
-      ctx.fillStyle = '#001122';
+      // Draw winter wonderland gradient sky
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#1a2a4a'); // Deep blue at top
+      gradient.addColorStop(0.5, '#2d4a70'); // Medium blue
+      gradient.addColorStop(1, '#4a6b99'); // Lighter blue near horizon
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Draw snow (falling straight down as snowflakes)
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'white';
+      // Draw distant snowy mountains
+      ctx.fillStyle = '#6b8bb5';
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height - 200);
+      ctx.quadraticCurveTo(200, canvas.height - 280, 400, canvas.height - 200);
+      ctx.quadraticCurveTo(600, canvas.height - 320, 800, canvas.height - 200);
+      ctx.lineTo(canvas.width, canvas.height - 200);
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(0, canvas.height);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Draw snow caps on mountains
+      ctx.fillStyle = '#e8f4f8';
+      ctx.beginPath();
+      ctx.moveTo(180, canvas.height - 265);
+      ctx.quadraticCurveTo(200, canvas.height - 280, 220, canvas.height - 265);
+      ctx.lineTo(180, canvas.height - 265);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(580, canvas.height - 305);
+      ctx.quadraticCurveTo(600, canvas.height - 320, 620, canvas.height - 305);
+      ctx.lineTo(580, canvas.height - 305);
+      ctx.fill();
+      
+      // Draw subtle falling snow animation
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.lineWidth = 1;
-      for (let i = 0; i < 50; i++) {
-        const x = (i * 17) % canvas.width; // Fixed horizontal position - no horizontal movement
-        const y = (i * 23 + gameTimeRef.current * 50) % canvas.height;
+      for (let i = 0; i < 80; i++) {
+        const baseX = (i * 13) % canvas.width;
+        const drift = Math.sin(gameTimeRef.current * 0.5 + i) * 15; // Gentle horizontal drift
+        const x = baseX + drift;
+        const y = ((i * 19 + gameTimeRef.current * 40) % (canvas.height + 100)) - 50;
+        const size = 1 + (i % 3) * 0.5; // Varied snowflake sizes
         
-        // Draw snowflake shape
+        // Draw delicate snowflake
+        ctx.globalAlpha = 0.6 + (i % 3) * 0.15; // Varied opacity
         ctx.beginPath();
-        // Center dot
-        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.arc(x, y, size, 0, Math.PI * 2);
         ctx.fill();
         
-        // Six arms of the snowflake
-        const armLength = 3;
-        for (let arm = 0; arm < 6; arm++) {
-          const angle = (arm * Math.PI) / 3;
-          const endX = x + Math.cos(angle) * armLength;
-          const endY = y + Math.sin(angle) * armLength;
-          
-          // Main arm
+        // Add sparkle to some snowflakes
+        if (i % 5 === 0) {
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.lineWidth = 0.5;
+          const sparkleSize = size * 2;
           ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          
-          // Small branches on each arm
-          const branchLength = armLength * 0.4;
-          const branchX1 = x + Math.cos(angle) * branchLength;
-          const branchY1 = y + Math.sin(angle) * branchLength;
-          
-          ctx.beginPath();
-          ctx.moveTo(branchX1, branchY1);
-          ctx.lineTo(branchX1 + Math.cos(angle + Math.PI/4) * 1, branchY1 + Math.sin(angle + Math.PI/4) * 1);
-          ctx.moveTo(branchX1, branchY1);
-          ctx.lineTo(branchX1 + Math.cos(angle - Math.PI/4) * 1, branchY1 + Math.sin(angle - Math.PI/4) * 1);
+          ctx.moveTo(x - sparkleSize, y);
+          ctx.lineTo(x + sparkleSize, y);
+          ctx.moveTo(x, y - sparkleSize);
+          ctx.lineTo(x, y + sparkleSize);
           ctx.stroke();
         }
       }
+      ctx.globalAlpha = 1; // Reset alpha
       
-      // Draw ground
-      ctx.fillStyle = '#2d5016';
+      // Draw snowy ground
+      ctx.fillStyle = '#f0f8ff';
       ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+      
+      // Add snow texture to ground
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      for (let i = 0; i < 30; i++) {
+        const x = (i * 29) % canvas.width;
+        const y = canvas.height - 45 + (i % 5) * 3;
+        ctx.beginPath();
+        ctx.arc(x, y, 2 + (i % 3), 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       // Check if Grinch freeze has expired
       if (grinchFreezeRef.current.isFrozen && Date.now() >= grinchFreezeRef.current.freezeEndTime) {
