@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useGrinchGame } from "../lib/stores/useGrinchGame";
 
 interface UsernameInputProps {
   onSubmit: (username: string) => void;
@@ -6,7 +7,18 @@ interface UsernameInputProps {
 
 export default function UsernameInput({ onSubmit }: UsernameInputProps) {
   const [username, setUsername] = useState('');
+  const [wallet, setWallet] = useState('');
   const [error, setError] = useState('');
+  const setWalletAddress = useGrinchGame(s => s.setWalletAddress);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const w = params.get('wallet');
+    if (w) {
+      setWallet(w);
+      setWalletAddress(w);
+    }
+  }, [setWalletAddress]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +40,9 @@ export default function UsernameInput({ onSubmit }: UsernameInputProps) {
       return;
     }
     
+    if (wallet) {
+      setWalletAddress(wallet.trim());
+    }
     onSubmit(trimmedUsername);
   };
 
@@ -64,6 +79,20 @@ export default function UsernameInput({ onSubmit }: UsernameInputProps) {
                 {error}
               </p>
             )}
+          </div>
+          <div>
+            <label htmlFor="wallet" className="block text-white font-semibold mb-2">
+              Solana Wallet Address (optional)
+            </label>
+            <input
+              id="wallet"
+              type="text"
+              value={wallet}
+              onChange={(e) => setWallet(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border-2 border-white bg-white text-gray-800 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              placeholder="Enter your Solana address"
+              spellCheck={false}
+            />
           </div>
           
           <button

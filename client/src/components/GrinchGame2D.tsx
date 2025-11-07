@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useGrinchGame } from "../lib/stores/useGrinchGame";
 import { useAudio } from "../lib/stores/useAudio";
 
@@ -33,6 +33,16 @@ interface Particle {
 export default function GrinchGame2D() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();
+  const lastSpinTierRef = useRef(0);
+  const [slotOpen, setSlotOpen] = useState(false);
+  const [slotOutcome, setSlotOutcome] = useState<"idle" | "spinning" | "win" | "lose">("idle");
+  const [slotReels, setSlotReels] = useState<string[]>(["🎁", "🎄", "⭐️"]);
+  const slotOpenRef = useRef(false);
+  useEffect(() => { slotOpenRef.current = slotOpen; }, [slotOpen]);
+  const slotUsedRef = useRef(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownRef = useRef(false);
+  useEffect(() => { countdownRef.current = countdown !== null; }, [countdown]);
   const keysRef = useRef<{ [key: string]: boolean }>({});
   const touchRef = useRef<{ active: boolean; direction: -1 | 0 | 1 }>({ active: false, direction: 0 });
   
@@ -1090,6 +1100,11 @@ export default function GrinchGame2D() {
 
     const gameLoop = (currentTime: number) => {
       if (gameState !== 'playing') return;
+      // Pause updates during slot or countdown
+      if (slotOpenRef.current || countdownRef.current) {
+        gameLoopRef.current = requestAnimationFrame(gameLoop);
+        return;
+      }
       
       const deltaTime = Math.min((currentTime - lastTime) / 1000, 1/30); // Cap deltaTime
       lastTime = currentTime;
@@ -1360,6 +1375,7 @@ export default function GrinchGame2D() {
           if (gift.type === 'normal') {
             // Normal gift - increase score
             scoreRef.current += 1;
+            setScore(scoreRef.current); // Update global store immediately
             playSuccess();
             // Create sparkly particles for caught gift
             createParticles(gift.x + gift.width / 2, gift.y + gift.height / 2, 'gift');
@@ -1401,6 +1417,15 @@ export default function GrinchGame2D() {
       const newDifficulty = Math.floor(gameTimeRef.current / 10);
       if (newDifficulty > difficultyRef.current) {
         difficultyRef.current = newDifficulty;
+      }
+
+      // Slot trigger every 20 points
+      const currentTier = Math.floor(scoreRef.current / 20);
+      if (!slotOpenRef.current && currentTier > 0 && currentTier > lastSpinTierRef.current) {
+        lastSpinTierRef.current = currentTier;
+        setSlotOutcome("idle");
+        setSlotOpen(true);
+        slotUsedRef.current = false;
       }
 
       // Update game time
@@ -1481,11 +1506,9 @@ export default function GrinchGame2D() {
       ctx.font = 'bold 24px Arial';
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 2;
-      ctx.strokeText(`Score: ${scoreRef.current}`, 20, 40);
-      ctx.fillText(`Score: ${scoreRef.current}`, 20, 40);
-      
-      ctx.strokeText(`Level: ${difficultyRef.current + 1}`, 20, 70);
-      ctx.fillText(`Level: ${difficultyRef.current + 1}`, 20, 70);
+      const scoreText = `Score: ${scoreRef.current}`;
+      ctx.strokeText(scoreText, 20, 40);
+      ctx.fillText(scoreText, 20, 40);
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     };
@@ -1515,21 +1538,117 @@ export default function GrinchGame2D() {
     }
   }, [gameState, playBackgroundMusic, stopBackgroundMusic]);
 
+  const slotSymbols = ["🎁", "🎄", "⭐️", "🔔", "🍬", "⛄️"];
+  const startSlotSpin = useCallback(() => {
+    if (slotOutcome === "spinning" || slotUsedRef.current) return;
+    slotUsedRef.current = true;
+    setSlotOutcome("spinning");
+    const start = Date.now();
+    const spinDurationMs = 1600;
+    const timer = setInterval(() => {
+      const newReels = [0, 1, 2].map(() => slotSymbols[Math.floor(Math.random() * slotSymbols.length)]);
+      setSlotReels(newReels);
+      if (Date.now() - start > spinDurationMs) {
+        clearInterval(timer);
+        const isWin = Math.random() < 0.02; // 2% win
+        if (isWin) {
+          const sym = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+          setSlotReels([sym, sym, sym]);
+          setSlotOutcome("win");
+          scoreRef.current = scoreRef.current * 2;
+        } else {
+          const a = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+          let b = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+          let c = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+          if (b === a) b = slotSymbols[(slotSymbols.indexOf(b) + 1) % slotSymbols.length];
+          if (c === a) c = slotSymbols[(slotSymbols.indexOf(c) + 2) % slotSymbols.length];
+          setSlotReels([a, b, c]);
+          setSlotOutcome("lose");
+        }
+        // Close after short delay and start countdown
+        setTimeout(() => {
+          setSlotOpen(false);
+          setCountdown(3);
+          const intId = setInterval(() => {
+            setCountdown(prev => {
+              if (prev === null) return null;
+              if (prev <= 1) {
+                clearInterval(intId);
+                return null;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }, 800);
+      }
+    }, 80);
+  }, [slotOutcome]);
+
   return (
-    <canvas
-      ref={canvasRef}
-      width={800}
-      height={600}
-      style={{
-        border: '2px solid #333',
-        backgroundColor: '#001122',
-        display: 'block',
-        margin: '0 auto',
-        touchAction: 'none', // Prevent scrolling on mobile
-        userSelect: 'none', // Prevent text selection on touch
-        WebkitUserSelect: 'none',
-        cursor: 'pointer'
-      }}
-    />
+    <div style={{ 
+      position: 'relative', 
+      width: '100%', 
+      maxWidth: '800px',
+      margin: '0 auto',
+      aspectRatio: '4/3',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={600}
+        style={{
+          border: '2px solid #333',
+          backgroundColor: '#001122',
+          display: 'block',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          touchAction: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          cursor: 'pointer'
+        }}
+      />
+
+      {slotOpen && (
+        <div
+          style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 10
+          }}
+        >
+          <div style={{ width: '90%', maxWidth: 520, padding: '15px', borderRadius: 12, background: '#122', border: '2px solid #c41e3a', color: 'white', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: 700, marginBottom: 12 }}>🎰 Slot Machine — Try to Double Your Points (Hard Mode)</div>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '12px 0', flexWrap: 'wrap' }}>
+              {slotReels.map((s, i) => (
+                <div key={i} style={{ width: 'clamp(80px, 20vw, 120px)', height: 'clamp(80px, 20vw, 120px)', borderRadius: 10, background: '#234', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(40px, 10vw, 64px)' }}>{s}</div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button
+                onClick={startSlotSpin}
+                disabled={slotOutcome === 'spinning' || slotUsedRef.current}
+                style={{ padding: '10px 18px', background: '#c9a227', color: '#112', border: 'none', borderRadius: 8, fontWeight: 800, cursor: 'pointer' }}
+              >{slotOutcome === 'spinning' ? 'Spinning…' : (slotUsedRef.current ? 'Used' : 'Spin')}</button>
+            </div>
+            {slotOutcome === 'win' && (
+              <div style={{ textAlign: 'center', marginTop: 10, color: '#4ade80', fontWeight: 700 }}>You won! Your points were doubled.</div>
+            )}
+            {slotOutcome === 'lose' && (
+              <div style={{ textAlign: 'center', marginTop: 10, color: '#f87171', fontWeight: 700 }}>No luck this time.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {countdown !== null && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.3)', zIndex: 8 }}>
+          <div style={{ color: 'white', fontSize: 'clamp(64px, 20vw, 96px)', fontWeight: 900, textShadow: '0 4px 12px rgba(0,0,0,0.6)' }}>{countdown}</div>
+        </div>
+      )}
+    </div>
   );
 }

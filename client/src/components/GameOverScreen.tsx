@@ -3,7 +3,7 @@ import { useGrinchGame } from "../lib/stores/useGrinchGame";
 import Leaderboard from "./Leaderboard";
 
 export default function GameOverScreen() {
-  const { gameState, username, score, restartGame, changeUsername } = useGrinchGame();
+  const { gameState, username, score, restartGame, changeUsername, walletAddress } = useGrinchGame();
   const [scoreSaved, setScoreSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -28,6 +28,7 @@ export default function GameOverScreen() {
               body: JSON.stringify({
                 username,
                 score,
+                wallet: walletAddress || null,
               }),
             });
 
@@ -72,14 +73,19 @@ export default function GameOverScreen() {
       textAlign: 'center',
       zIndex: 200,
       backgroundColor: 'rgba(0,0,0,0.8)',
-      padding: '40px',
+      padding: '20px',
       borderRadius: '20px',
       backdropFilter: 'blur(10px)',
-      border: '2px solid #c41e3a'
+      border: '2px solid #c41e3a',
+      width: '90%',
+      maxWidth: '500px',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      boxSizing: 'border-box'
     }}>
       <h1 style={{
-        fontSize: '48px',
-        marginBottom: '20px',
+        fontSize: 'clamp(32px, 8vw, 48px)',
+        marginBottom: '15px',
         color: '#c41e3a',
         textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
       }}>
@@ -87,8 +93,9 @@ export default function GameOverScreen() {
       </h1>
       
       <p style={{
-        fontSize: '24px',
-        marginBottom: '10px'
+        fontSize: 'clamp(18px, 5vw, 24px)',
+        marginBottom: '10px',
+        wordBreak: 'break-word'
       }}>
         {username} caught {score} gifts!
       </p>

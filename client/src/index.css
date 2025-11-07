@@ -24,7 +24,7 @@
 }
 
 canvas {
-  width: 100% !important;
-  height: 100% !important;
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }

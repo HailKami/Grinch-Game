@@ -20,12 +20,14 @@ export const leaderboard = pgTable("leaderboard", {
   id: serial("id").primaryKey(),
   username: text("username").notNull(),
   score: integer("score").notNull(),
+  wallet: text("wallet"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertLeaderboardSchema = createInsertSchema(leaderboard).pick({
   username: true,
   score: true,
+  wallet: true,
 });
 
 export type InsertLeaderboard = z.infer<typeof insertLeaderboardSchema>;

@@ -16,6 +16,7 @@ interface Position {
 interface GrinchGameState {
   gameState: GameState;
   username: string;
+  walletAddress?: string;
   score: number;
   gifts: Gift[];
   grinchPosition: Position;
@@ -24,6 +25,7 @@ interface GrinchGameState {
   
   // Actions
   setUsername: (username: string) => void;
+  setWalletAddress: (wallet: string) => void;
   startGame: () => void;
   endGame: () => void;
   restartGame: () => void;
@@ -40,6 +42,7 @@ interface GrinchGameState {
 export const useGrinchGame = create<GrinchGameState>((set, get) => ({
   gameState: "usernameInput",
   username: "",
+  walletAddress: undefined,
   score: 0,
   gifts: [],
   grinchPosition: { x: 0, y: -4 },
@@ -48,6 +51,9 @@ export const useGrinchGame = create<GrinchGameState>((set, get) => ({
   
   setUsername: (username: string) => {
     set({ username });
+  },
+  setWalletAddress: (wallet: string) => {
+    set({ walletAddress: wallet });
   },
   
   startGame: () => {

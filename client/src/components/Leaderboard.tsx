@@ -74,7 +74,7 @@ export default function Leaderboard({ onClose }: LeaderboardProps) {
             {entries.map((entry, index) => (
               <div
                 key={entry.id}
-                className={`flex items-center justify-between p-3 rounded-lg ${
+                className={`p-3 rounded-lg ${
                   index === 0
                     ? 'bg-yellow-400 text-gray-900'
                     : index === 1
@@ -84,17 +84,17 @@ export default function Leaderboard({ onClose }: LeaderboardProps) {
                     : 'bg-white bg-opacity-20 text-white'
                 }`}
               >
-                <div className="flex items-center space-x-4 flex-1">
-                  <span className="text-2xl font-bold w-8">
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
-                  </span>
-                  <span className="font-semibold text-lg truncate flex-1">
-                    {entry.username}
-                  </span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <span className="text-xl font-bold flex-shrink-0">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
+                    </span>
+                    <span className="font-semibold text-base sm:text-lg truncate">
+                      {entry.username}
+                    </span>
+                  </div>
+                  <span className="text-xl sm:text-2xl font-bold flex-shrink-0">{entry.score}</span>
                 </div>
-                <span className="text-2xl font-bold">
-                  {entry.score}
-                </span>
               </div>
             ))}
           </div>
