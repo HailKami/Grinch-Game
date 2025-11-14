@@ -12,6 +12,7 @@ export interface IStorage {
   // Leaderboard methods
   saveScore(entry: InsertLeaderboard): Promise<Leaderboard>;
   getTopScores(limit: number): Promise<Leaderboard[]>;
+  clearLeaderboard(): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -52,6 +53,11 @@ export class DbStorage implements IStorage {
       .orderBy(desc(leaderboard.score))
       .limit(limit);
   }
+
+  async clearLeaderboard(): Promise<void> {
+    const db = await this.getDb();
+    await db.delete(leaderboard);
+  }
 }
 
 class MemoryStorage implements IStorage {
@@ -85,6 +91,11 @@ class MemoryStorage implements IStorage {
       .slice()
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
+  }
+
+  async clearLeaderboard(): Promise<void> {
+    this.leaderboard = [];
+    this.nextScoreId = 1;
   }
 }
 

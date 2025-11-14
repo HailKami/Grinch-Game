@@ -84,6 +84,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to reset/clear the leaderboard
+  app.delete("/api/admin/leaderboard", async (req, res) => {
+    try {
+      const adminPassword = process.env.ADMIN_PASSWORD || "Hailkami628";
+      const providedPassword = (req.query.password as string)?.trim();
+      
+      if (!providedPassword || providedPassword !== adminPassword.trim()) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      await storage.clearLeaderboard();
+      res.json({ message: "Leaderboard cleared successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to clear leaderboard" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

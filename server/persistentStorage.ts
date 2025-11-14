@@ -69,6 +69,12 @@ export class PersistentFileStorage implements IStorage {
     return this.leaderboard.slice().sort((a, b) => b.score - a.score);
   }
 
+  async clearLeaderboard(): Promise<void> {
+    this.leaderboard = [];
+    this.nextId = 1;
+    saveLeaderboard([]);
+  }
+
   // User methods (not used but required by interface)
   async getUser(id: number): Promise<User | undefined> {
     return undefined;
