@@ -47,11 +47,25 @@ export class DbStorage implements IStorage {
 
   async getTopScores(limit: number = 10): Promise<Leaderboard[]> {
     const db = await this.getDb();
-    return await db
+    const allScores = await db
       .select()
       .from(leaderboard)
-      .orderBy(desc(leaderboard.score))
-      .limit(limit);
+      .orderBy(desc(leaderboard.score));
+    
+    // Group by username and keep only the highest score for each
+    const uniqueScores = new Map<string, Leaderboard>();
+    for (const entry of allScores) {
+      const username = entry.username.toLowerCase();
+      const existing = uniqueScores.get(username);
+      if (!existing || entry.score > existing.score) {
+        uniqueScores.set(username, entry);
+      }
+    }
+    
+    // Convert map to array, sort by score, and limit
+    return Array.from(uniqueScores.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
   }
 
   async clearLeaderboard(): Promise<void> {
@@ -87,8 +101,18 @@ class MemoryStorage implements IStorage {
   }
 
   async getTopScores(limit: number = 10): Promise<Leaderboard[]> {
-    return this.leaderboard
-      .slice()
+    // Group by username and keep only the highest score for each
+    const uniqueScores = new Map<string, Leaderboard>();
+    for (const entry of this.leaderboard) {
+      const username = entry.username.toLowerCase();
+      const existing = uniqueScores.get(username);
+      if (!existing || entry.score > existing.score) {
+        uniqueScores.set(username, entry);
+      }
+    }
+    
+    // Convert map to array, sort by score, and limit
+    return Array.from(uniqueScores.values())
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
   }
